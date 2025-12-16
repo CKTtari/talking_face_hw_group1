@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模型训练 - 语音识别与合成系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/train.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">语音识别与合成系统</a>
+            <ul class="nav-menu">
+                <li><a href="/train" class="active">模型训练</a></li>
+                <li><a href="/generate">视频生成</a></li>
+                <li><a href="/chat">实时对话</a></li>
+            </ul>
+            <div class="nav-actions">
+                <select id="themeSelect" onchange="UI.setTheme(this.value)">
+                    <option value="minimal-white" selected>极简白</option>
+                    <option value="elegant-gray">素雅灰</option>
+                    <option value="light-green">浅葱绿</option>
+                    <option value="summer-yellow">盛夏黄</option>
+                    <option value="peach-pink">桃桃粉</option>
+                    <option value="star-purple">星辰紫</option>
+                    <option value="classic-blue">经典蓝</option>
+                    <option value="vital-red">元气红</option>
+                    <option value="ultimate-black">极致黑</option>
+                </select>
+                <select id="fontSelect" onchange="UI.setFont(this.value)">
+                    <option value="default">默认字体</option>
+                    <option value="serif">衬线字体 (Serif)</option>
+                    <option value="sans-serif">无衬线字体 (Sans-Serif)</option>
+                    <option value="monospace">等宽字体 (Monospace)</option>
+                    <option value="cursive">手写字体 (Cursive)</option>
+                </select>
+                <button class="btn-small" onclick="UI.startTour()">新手引导</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="content-container">
+        <!-- 左侧：训练视频展示区 -->
+        <div class="left-panel">
+            <div class="video-container">
+                <h2>训练视频</h2>
+                <div id="videoDisplay" class="video-display">
+                    <p>训练完成后，视频将显示在此</p>
+                </div>
+                <div id="progressBar" class="progress-bar" style="display: none;">
+                    <div class="progress-fill" id="progressFill"></div>
+                    <p id="progressText">0%</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：训练参数设置区 -->
+        <div class="right-panel">
+            <h2>训练参数设置</h2>
+            <form id="trainForm" class="form-container">
+                <!-- 模型名称 -->
+                <div class="form-group">
+                    <label for="modelName">模型名称</label>
+                    <select id="modelName" name="modelName">
+                        <option value="SyncTalk" selected>SyncTalk</option>
+                        <option value="Wav2Lip">Wav2Lip</option>
+                        <option value="MoFA-Talk">MoFA-Talk</option>
+                    </select>
+                </div>
+
+                <!-- 参考视频地址 -->
+                <div class="form-group">
+                    <label for="referenceVideo">参考视频地址</label>
+                    <input type="text" id="referenceVideo" name="referenceVideo" 
+                           placeholder="输入或上传参考视频路径">
+                    <button type="button" class="btn-upload" onclick="uploadFile('video')">上传视频</button>
+                </div>
+
+                <!-- GPU选择 -->
+                <div class="form-group">
+                    <label for="gpuSelect">GPU选择</label>
+                    <select id="gpuSelect" name="gpuSelect">
+                        <option value="GPU0" selected>GPU0</option>
+                        <option value="GPU1">GPU1</option>
+                        <option value="GPU2">GPU2</option>
+                        <option value="GPU3">GPU3</option>
+                    </select>
+                </div>
+
+                <!-- Epoch（训练轮数） -->
+                <div class="form-group">
+                    <label for="epochs">Epoch（训练轮数）</label>
+                    <input type="number" id="epochs" name="epochs" value="10" min="1" max="1000">
+                </div>
+
+                <!-- 自定义训练参数 -->
+                <div class="form-group">
+                    <label for="customParams">自定义训练参数</label>
+                    <textarea id="customParams" name="customParams" 
+                              placeholder="输入自定义训练参数（JSON格式）" rows="4"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <small class="field-tip">提示：训练时间随数据量和Epoch成正比，首次可用较小Epoch试验（默认10）。</small>
+                </div>
+                <!-- 训练按钮 -->
+                <button type="button" class="btn-train" onclick="startTraining()">开始训练</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/train.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+</body>
+</html>
