@@ -1,89 +1,189 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 import os
-from backend.video_generator import generate_video
-from backend.model_trainer import train_model
-from backend.chat_engine import chat_response
+from datetime import datetime
+import json
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB max file size
 
-# 首页
+# 确保上传文件夹存在
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# 存储训练和生成任务的状态
+tasks = {}
+
 @app.route('/')
 def index():
+    """主页 - 显示三个选项"""
     return render_template('index.html')
 
-# 视频生成界面
-@app.route('/video_generation', methods=['GET', 'POST'])
-def video_generation():
-    if request.method == 'POST':
-        data = {
-            "model_name": request.form.get('model_name'),
-            "model_param": request.form.get('model_param'),
-            "ref_audio": request.form.get('ref_audio'),
-            "gpu_choice": request.form.get('gpu_choice'),
-            "target_text": request.form.get('target_text'),
+@app.route('/train')
+def train():
+    """模型训练页面"""
+    return render_template('train.html')
+
+@app.route('/generate')
+def generate():
+    """视频生成页面"""
+    return render_template('generate.html')
+
+@app.route('/chat')
+def chat():
+    """实时对话页面"""
+    return render_template('chat.html')
+
+@app.route('/workflow')
+def workflow():
+    """一条龙体验页面"""
+    return render_template('workflow.html')
+
+# API 端点
+
+@app.route('/api/train', methods=['POST'])
+def api_train():
+    """开始训练模型"""
+    try:
+        data = request.json
+        task_id = f"train_{datetime.now().timestamp()}"
+        
+        tasks[task_id] = {
+            'type': 'train',
+            'status': 'processing',
+            'model_name': data.get('model_name', 'SyncTalk'),
+            'reference_video': data.get('reference_video', ''),
+            'gpu': data.get('gpu', 'GPU0'),
+            'epochs': data.get('epochs', 10),
+            'custom_params': data.get('custom_params', ''),
+            'progress': 0,
+            'video_url': None,
+            'created_at': datetime.now().isoformat()
         }
+        
+        # 这里应该调用实际的训练脚本
+        # 现在返回模拟响应
+        tasks[task_id]['status'] = 'completed'
+        tasks[task_id]['progress'] = 100
+        tasks[task_id]['video_url'] = '/static/videos/training_sample.mp4'
+        
+        return jsonify({
+            'success': True,
+            'task_id': task_id,
+            'message': '训练已启动'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
 
-        video_path = generate_video(data)
-        return jsonify({'status': 'success', 'video_path': video_path})
-
-    return render_template('video_generation.html')
-
-
-# 模型训练界面
-@app.route('/model_training', methods=['GET', 'POST'])
-def model_training():
-    if request.method == 'POST':
-        data = {
-            "model_choice": request.form.get('model_choice'),
-            "ref_video": request.form.get('ref_video'),
-            "gpu_choice": request.form.get('gpu_choice'),
-            "epoch": request.form.get('epoch'),
-            "custom_params": request.form.get('custom_params')
+@app.route('/api/generate', methods=['POST'])
+def api_generate():
+    """生成视频"""
+    try:
+        data = request.json
+        task_id = f"generate_{datetime.now().timestamp()}"
+        
+        tasks[task_id] = {
+            'type': 'generate',
+            'status': 'processing',
+            'model_name': data.get('model_name', 'SyncTalk'),
+            'model_dir': data.get('model_dir', ''),
+            'reference_audio': data.get('reference_audio', ''),
+            'gpu': data.get('gpu', 'GPU0'),
+            'voice_clone_model': data.get('voice_clone_model', 'Voice Clone A'),
+            'target_text': data.get('target_text', ''),
+            'progress': 0,
+            'video_url': None,
+            'created_at': datetime.now().isoformat()
         }
+        
+        # 这里应该调用实际的视频生成脚本
+        # 现在返回模拟响应
+        tasks[task_id]['status'] = 'completed'
+        tasks[task_id]['progress'] = 100
+        tasks[task_id]['video_url'] = '/static/videos/generated_sample.mp4'
+        
+        return jsonify({
+            'success': True,
+            'task_id': task_id,
+            'message': '视频生成已启动'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
 
-        video_path = train_model(data)
-        video_path = "/" + video_path.replace("\\", "/")
+@app.route('/api/task/<task_id>', methods=['GET'])
+def get_task_status(task_id):
+    """获取任务状态"""
+    if task_id in tasks:
+        return jsonify(tasks[task_id]), 200
+    else:
+        return jsonify({'error': '任务不存在'}), 404
 
-        return jsonify({'status': 'success', 'video_path': video_path})
+@app.route('/api/models', methods=['GET'])
+def get_models():
+    """获取可用的模型列表"""
+    return jsonify({
+        'models': ['SyncTalk', 'Wav2Lip', 'MoFA-Talk'],
+        'voice_models': ['Voice Clone A', 'Voice Clone B', 'Voice Clone C'],
+        'gpus': ['GPU0', 'GPU1', 'GPU2', 'GPU3'],
+        'apis': ['OpenAI API', 'Claude API', 'Local LLM']
+    }), 200
 
-    return render_template('model_training.html')
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    """上传文件"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': '没有文件部分'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': '没有选择文件'}), 400
+        
+        # 保存文件
+        filename = f"{datetime.now().timestamp()}_{file.filename}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'path': f'/uploads/{filename}'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
 
-
-# 实时对话系统界面
-@app.route('/chat_system', methods=['GET', 'POST'])
-def chat_system():
-    if request.method == 'POST':
-        data = {
-            "model_name": request.form.get('model_name'),
-            "model_param": request.form.get('model_param'),
-            "voice_clone": request.form.get('voice_clone'),
-            "api_choice": request.form.get('api_choice'),
+@app.route('/api/chat', methods=['POST'])
+def api_chat():
+    """处理实时对话"""
+    try:
+        data = request.json
+        user_message = data.get('message', '')
+        
+        # 这里应该调用对话API（OpenAI、Claude等）
+        # 现在返回模拟响应
+        response = {
+            'user_message': user_message,
+            'bot_response': f"这是对你的消息 '{user_message}' 的模拟回应",
+            'timestamp': datetime.now().isoformat()
         }
-
-        video_path = chat_response(data)
-        video_path = "/" + video_path.replace("\\", "/")
-
-        return jsonify({'status': 'success', 'video_path': video_path})
-
-    return render_template('chat_system.html')
-
-@app.route('/save_audio', methods=['POST'])
-def save_audio():
-    if 'audio' not in request.files:
-        return jsonify({'status': 'error', 'message': '没有音频文件'})
-    
-    audio_file = request.files['audio']
-    if audio_file.filename == '':
-        return jsonify({'status': 'error', 'message': '没有选择文件'})
-    
-    # 确保目录存在
-    os.makedirs('./static/audios', exist_ok=True)
-    
-    # 保存文件
-    audio_file.save('./static/audios/input.wav')
-    
-    return jsonify({'status': 'success', 'message': '音频保存成功'})
-
+        
+        return jsonify({
+            'success': True,
+            'data': response
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
 
 if __name__ == '__main__':
-    app.run(debug=True, port = 5001)
+    app.run(debug=True, host='0.0.0.0', port=5003)

@@ -1,0 +1,34 @@
+/* 训练页面特定样式 */
+@import url('common.css');
+
+.train-status {
+    background: #f0f0f0;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-top: 1rem;
+    display: none;
+}
+
+.train-status.active {
+    display: block;
+}
+
+.train-status p {
+    color: #555;
+    margin: 0.5rem 0;
+}
+
+.train-status .status-success {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+.train-status .status-error {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.train-status .status-processing {
+    color: #2196f3;
+    font-weight: bold;
+}

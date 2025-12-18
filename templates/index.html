@@ -1,99 +1,79 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>DATA HAMMER GROUP TALKING SYSTEM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音识别与合成系统</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        body.main-bg {
-            background: radial-gradient(circle at center, #0a0a0a 0%, #1b1b1b 100%);
-            color: #fff;
-            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        .container {
-            text-align: center;
-            padding: 40px 60px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 0 40px rgba(0, 200, 255, 0.2);
-            backdrop-filter: blur(10px);
-            animation: fadeIn 1.2s ease;
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            letter-spacing: 2px;
-            color: #00e5ff;
-            margin-bottom: 40px;
-            text-shadow: 0 0 15px rgba(0, 229, 255, 0.6);
-            animation: glowText 3s infinite alternate;
-        }
-
-        .button-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .button-container button {
-            background: linear-gradient(90deg, #00c6ff, #0072ff);
-            border: none;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: bold;
-            padding: 14px 0;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
-        }
-
-        .button-container button:hover {
-            transform: scale(1.05);
-            background: linear-gradient(90deg, #0072ff, #00c6ff);
-            box-shadow: 0 0 25px rgba(0, 229, 255, 0.6);
-        }
-
-        .button-container button:active {
-            transform: scale(0.98);
-        }
-
-        @keyframes glowText {
-            from { text-shadow: 0 0 10px #00e5ff; }
-            to { text-shadow: 0 0 25px #00ffff, 0 0 50px #00ffff; }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 可选底部标识 */
-        .footer {
-            position: absolute;
-            bottom: 15px;
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.4);
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
 </head>
-<body class="main-bg">
-    <div class="container">
-        <h1>DATA HAMMER GROUP<br>TALKING SYSTEM</h1>
-        <div class="button-container">
-            <button onclick="window.location.href='/model_training'">训练模型</button>
-            <button onclick="window.location.href='/video_generation'">视频生成</button>
-            <button onclick="window.location.href='/chat_system'">人机对话</button>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+           <a href="/" class="nav-brand">语音识别与合成系统</a>
+            <ul class="nav-menu">
+                <li><a href="/train">模型训练</a></li>
+                <li><a href="/generate">视频生成</a></li>
+                <li><a href="/chat">实时对话</a></li>
+            </ul>
+            <div class="nav-actions">
+                <select id="themeSelect" onchange="UI.setTheme(this.value)">
+                    <option value="minimal-white" selected>极简白</option>
+                    <option value="elegant-gray">素雅灰</option>
+                    <option value="light-green">浅葱绿</option>
+                    <option value="summer-yellow">盛夏黄</option>
+                    <option value="peach-pink">桃桃粉</option>
+                    <option value="star-purple">星辰紫</option>
+                    <option value="classic-blue">经典蓝</option>
+                    <option value="vital-red">元气红</option>
+                    <option value="ultimate-black">极致黑</option>
+                </select>
+                <select id="fontSelect" onchange="UI.setFont(this.value)">
+                    <option value="default">默认字体</option>
+                    <option value="serif">衬线字体 (Serif)</option>
+                    <option value="sans-serif">无衬线字体 (Sans-Serif)</option>
+                    <option value="monospace">等宽字体 (Monospace)</option>
+                    <option value="cursive">手写字体 (Cursive)</option>
+                </select>
+                <button class="btn-small" onclick="UI.startTour()">新手引导</button>
+            </div>
         </div>
+    </nav>
+    
+    <div class="container">
+        <div class="header">
+            <h1>AI语音交互系统</h1>
+            <p>探索先进的语音识别与合成技术，创建个性化的AI语音助手</p>
+        </div>
+        
+        <div class="options-container">
+            <div class="option-card" onclick="window.location.href='/train'">
+                <div class="icon">🎓</div>
+                <h2>模型训练</h2>
+                <p>训练语音合成模型</p>
+            </div>
+            
+            <div class="option-card" onclick="window.location.href='/generate'">
+                <div class="icon">🎬</div>
+                <h2>视频生成</h2>
+                <p>生成同步音视频</p>
+            </div>
+            
+            <div class="option-card" onclick="window.location.href='/chat'">
+                <div class="icon">💬</div>
+                <h2>实时对话</h2>
+                <p>与克隆人物实时交互</p>
+            </div>
+                        
+            <div class="option-card workflow-experience" onclick="window.location.href='/workflow'">
+                <div class="icon">🚀</div>
+                <h2>一条龙体验</h2>
+                <p>从训练到对话的全流程引导</p>
+            </div>
+        </div>
+
     </div>
-    <div class="footer">© 2025 DATA HAMMER LAB</div>
+
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
 </body>
 </html>
