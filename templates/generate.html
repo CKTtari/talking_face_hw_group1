@@ -10,7 +10,7 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/" class="nav-brand">语音识别与合成系统</a>
+            <a href="/" class="nav-brand">TALKING SYSTEM - GROUP 1</a>
             <ul class="nav-menu">
                 <li><a href="/train">模型训练</a></li>
                 <li><a href="/generate" class="active">视频生成</a></li>
@@ -62,19 +62,19 @@
                 <!-- 模型名称 -->
                 <div class="form-group">
                     <label for="modelName">模型名称</label>
-                    <select id="modelName" name="modelName">
-                        <option value="SyncTalk" selected>SyncTalk</option>
-                        <option value="Wav2Lip">Wav2Lip</option>
-                        <option value="MoFA-Talk">MoFA-Talk</option>
-                    </select>
+                    <input type="text" id="modelName" name="modelName" value="SyncTalk" readonly>
+                    <small class="field-tip">当前系统仅支持SyncTalk模型</small>
                 </div>
 
                 <!-- 模型目录地址 -->
                 <div class="form-group">
                     <label for="modelDir">模型目录地址</label>
                     <input type="text" id="modelDir" name="modelDir" 
-                           placeholder="输入模型目录路径">
+                           placeholder="输入完整的模型目录路径（如：E:\\projects\\MimicTalk\\checkpoints_mimictalk\\Lieu）" 
+                           style="width: calc(100% - 100px);">
                     <button type="button" class="btn-upload" onclick="selectDirectory()">浏览</button>
+                    <small class="field-tip">⚠️ 由于浏览器安全限制，"浏览"功能无法获取完整路径，
+                    请手动输入完整的模型目录路径。系统将直接使用您提供的路径，不会进行相对路径处理。</small>
                 </div>
 
                 <!-- 参考音频地址 -->
@@ -83,6 +83,15 @@
                     <input type="text" id="referenceAudio" name="referenceAudio" 
                            placeholder="输入或上传参考音频路径">
                     <button type="button" class="btn-upload" onclick="uploadFile('audio')">上传音频</button>
+                </div>
+
+                <!-- 参考视频选择 -->
+                <div class="form-group">
+                    <label for="referenceVideo">参考视频地址</label>
+                    <input type="text" id="referenceVideo" name="referenceVideo" 
+                           placeholder="输入或上传参考视频路径">
+                    <button type="button" class="btn-upload" onclick="uploadFile('video')">上传视频</button>
+                    <small class="field-tip">参考视频将用于控制生成视频的姿态</small>
                 </div>
 
                 <!-- GPU选择 -->
@@ -96,15 +105,7 @@
                     </select>
                 </div>
 
-                <!-- 语音克隆模型名称 -->
-                <div class="form-group">
-                    <label for="voiceCloneModel">语音克隆模型名称</label>
-                    <select id="voiceCloneModel" name="voiceCloneModel">
-                        <option value="Voice Clone A" selected>Voice Clone A</option>
-                        <option value="Voice Clone B">Voice Clone B</option>
-                        <option value="Voice Clone C">Voice Clone C</option>
-                    </select>
-                </div>
+
 
                 <!-- 目标文字 -->
                 <div class="form-group">

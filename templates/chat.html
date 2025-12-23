@@ -11,7 +11,7 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/" class="nav-brand">语音识别与合成系统</a>
+            <a href="/" class="nav-brand">TALKING SYSTEM - GROUP 1</a>
             <ul class="nav-menu">
                 <li><a href="/train">模型训练</a></li>
                 <li><a href="/generate">视频生成</a></li>
@@ -67,11 +67,8 @@
                 <!-- 模型名称 -->
                 <div class="form-group">
                     <label for="modelName">模型名称</label>
-                    <select id="modelName" name="modelName">
-                        <option value="SyncTalk" selected>SyncTalk</option>
-                        <option value="Wav2Lip">Wav2Lip</option>
-                        <option value="MoFA-Talk">MoFA-Talk</option>
-                    </select>
+                    <input type="text" id="modelName" name="modelName" value="SyncTalk" readonly>
+                    <small class="field-tip">当前系统仅支持SyncTalk模型</small>
                 </div>
 
                 <!-- 模型目录地址 -->
@@ -90,6 +87,15 @@
                     <button type="button" class="btn-upload" onclick="uploadFile('audio')">上传音频</button>
                 </div>
 
+                <!-- 参考视频选择 -->
+                <div class="form-group">
+                    <label for="referenceVideo">参考视频地址</label>
+                    <input type="text" id="referenceVideo" name="referenceVideo" 
+                           placeholder="输入或上传参考视频路径">
+                    <button type="button" class="btn-upload" onclick="uploadFile('video')">上传视频</button>
+                    <small class="field-tip">参考视频将用于控制生成视频的姿态</small>
+                </div>
+
                 <!-- GPU选择 -->
                 <div class="form-group">
                     <label for="gpuSelect">GPU选择</label>
@@ -104,11 +110,8 @@
                 <!-- 语音克隆模型名称 -->
                 <div class="form-group">
                     <label for="voiceCloneModel">语音克隆模型名称</label>
-                    <select id="voiceCloneModel" name="voiceCloneModel">
-                        <option value="Voice Clone A" selected>Voice Clone A</option>
-                        <option value="Voice Clone B">Voice Clone B</option>
-                        <option value="Voice Clone C">Voice Clone C</option>
-                    </select>
+                    <input type="text" id="voiceCloneModel" name="voiceCloneModel" value="GPT_SoVITS" readonly>
+                    <small class="field-tip">当前系统使用GPT_SoVITS模型进行语音克隆</small>
                 </div>
 
                 <!-- 对话API选择 -->
@@ -134,8 +137,21 @@
                 </div>
 
 
-                <!-- 开始/停止对话切换按钮 -->
-                <button type="button" id="chatToggleBtn" class="btn-primary" onclick="toggleChat()">开始对话</button>
+
+                    <!-- 语音控制按钮 -->
+                <div class="voice-controls" style="display: none;">
+                    <button type="button" id="voiceToggleBtn" class="btn-small btn-primary" onclick="toggleVoiceRecognition()" disabled>开始说话</button>
+                </div>
+
+                <!-- 聊天消息显示区域 -->
+                <div class="chat-display-container">
+                    <h3>对话记录</h3>
+                    <div id="chatDisplay" class="chat-messages-container">
+                        <div class="chat-messages"></div>
+                    </div>
+                </div>
+
+
             </form>
         </div>
     </div>

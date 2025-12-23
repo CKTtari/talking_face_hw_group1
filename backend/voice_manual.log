@@ -1,0 +1,39 @@
+---------------------------------------------TTS Config---------------------------------------------
+device              : cpu
+is_half             : False
+version             : v2
+t2s_weights_path    : GPT_SoVITS/pretrained_models/gsv-v2final-pretrained/s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt
+vits_weights_path   : GPT_SoVITS/pretrained_models/gsv-v2final-pretrained/s2G2333k.pth
+bert_base_path      : GPT_SoVITS/pretrained_models/chinese-roberta-wwm-ext-large
+cnhuhbert_base_path : GPT_SoVITS/pretrained_models/chinese-hubert-base
+----------------------------------------------------------------------------------------------------
+
+Loading Text2Semantic weights from GPT_SoVITS/pretrained_models/gsv-v2final-pretrained/s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt
+Loading VITS weights from GPT_SoVITS/pretrained_models/gsv-v2final-pretrained/s2G2333k.pth. <All keys matched successfully>
+Loading BERT weights from GPT_SoVITS/pretrained_models/chinese-roberta-wwm-ext-large
+Loading CNHuBERT weights from GPT_SoVITS/pretrained_models/chinese-hubert-base
+[DEBUG] Checking params: {'text': '12345', 'text_lang': 'zh', 'prompt_lang': 'zh', 'text_split_method': 'cut5', 'batch_size': 1, 'ref_audio_path': 'uploaded_audio/reference.wav'}
+[DEBUG] All params checked successfully
+[DEBUG] Starting tts_pipeline.run with req: {'text': '12345', 'text_lang': 'zh', 'prompt_lang': 'zh', 'text_split_method': 'cut5', 'batch_size': 1, 'ref_audio_path': 'uploaded_audio/reference.wav'}
+[DEBUG] tts_pipeline.run returned generator: <generator object TTS.run at 0x76c360188c80>
+[DEBUG] Non-streaming mode, getting first chunk
+Set seed to 1265588751
+Parallel Inference Mode Enabled
+Bucket Processing Mode Enabled
+############ Segment Text ############
+Actual Input Target Text:
+12345
+Actual Input Target Text (after sentence segmentation):
+['12345。']
+############ Extract Text BERT Features ############
+############ 推理 ############
+Processed text from the frontend (per sentence): ['幺二三四五.']
+############ Predict Semantic Token ############
+Warning: Prompt free is not supported batch_infer! switch to naive_infer
+T2S Decoding EOS [0 -> 55]
+############ Synthesize Audio ############
+Parallel Synthesis in Progress...
+1.398	2.494	1.109	0.830
+[DEBUG] Got audio data with sample rate: 32000, data length: 78720
+[DEBUG] Packed audio data length: 157484
+INFO:     172.18.0.1:58958 - "POST /tts HTTP/1.1" 200 OK

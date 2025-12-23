@@ -1,5 +1,71 @@
 // 训练页面脚本
 
+// 全局变量，用于存储上传的文件对象
+let uploadedVideoFile = null;
+let uploadedAudioFile = null;
+
+// 页面加载时获取GPU信息
+window.addEventListener('DOMContentLoaded', function() {
+    loadGPUInfo();
+});
+
+// 加载GPU信息
+function loadGPUInfo() {
+    fetch('/api/gpu_info')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateGPUOptions(data.gpus);
+            } else {
+                console.error('获取GPU信息失败:', data.error);
+                // 使用默认选项
+                updateGPUOptions([
+                    {id: 'GPU0', name: '默认GPU', memory_total: '未知', memory_free: '未知', available: true},
+                    {id: 'CPU', name: 'CPU模式', memory_total: '系统内存', memory_free: '未知', available: true}
+                ]);
+            }
+        })
+        .catch(error => {
+            console.error('获取GPU信息出错:', error);
+            // 使用默认选项
+            updateGPUOptions([
+                {id: 'GPU0', name: '默认GPU', memory_total: '未知', memory_free: '未知', available: true},
+                {id: 'CPU', name: 'CPU模式', memory_total: '系统内存', memory_free: '未知', available: true}
+            ]);
+        });
+}
+
+// 更新GPU选择框选项
+function updateGPUOptions(gpus) {
+    const gpuSelect = document.getElementById('gpuSelect');
+    if (!gpuSelect) return;
+    
+    // 清空现有选项
+    gpuSelect.innerHTML = '';
+    
+    // 添加新的GPU选项
+    gpus.forEach(gpu => {
+        const option = document.createElement('option');
+        option.value = gpu.id;
+        option.textContent = `${gpu.id} - ${gpu.name} (${gpu.memory_total}, 可用: ${gpu.memory_free})`;
+        option.disabled = !gpu.available;
+        
+        if (gpu.id === 'GPU0') {
+            option.selected = true;
+        }
+        
+        gpuSelect.appendChild(option);
+    });
+    
+    // 如果没有GPU0，选择第一个可用的GPU
+    if (!gpuSelect.value) {
+        const firstAvailable = gpuSelect.querySelector('option:not([disabled])');
+        if (firstAvailable) {
+            firstAvailable.selected = true;
+        }
+    }
+}
+
 // 上传文件
 function uploadFile(type) {
     const input = document.createElement('input');
@@ -14,51 +80,56 @@ function uploadFile(type) {
     input.onchange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            uploadToServer(file, type);
+            if (type === 'video') {
+                uploadedVideoFile = file;
+                document.getElementById('referenceVideo').value = file.name;
+            } else if (type === 'audio') {
+                uploadedAudioFile = file;
+                document.getElementById('referenceAudio').value = file.name;
+            }
+            showNotification('文件已选择：' + file.name, 'success');
         }
     };
     
     input.click();
 }
 
-// 上传文件到服务器
-function uploadToServer(file, type) {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            if (type === 'video') {
-                document.getElementById('referenceVideo').value = data.path;
-            } else if (type === 'audio') {
-                document.getElementById('referenceAudio').value = data.path;
-            }
-            showNotification('文件上传成功', 'success');
-        } else {
-            showNotification('文件上传失败: ' + data.error, 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('上传出错: ' + error.message, 'error');
-    });
-}
-
 // 开始训练
 function startTraining() {
     const modelName = document.getElementById('modelName').value;
-    const referenceVideo = document.getElementById('referenceVideo').value;
     const gpu = document.getElementById('gpuSelect').value;
     const epochs = document.getElementById('epochs').value;
-    const customParams = document.getElementById('customParams').value;
     
-    if (!referenceVideo) {
-        showNotification('请输入或上传参考视频地址', 'error');
+    // 获取自定义参数
+    const maxUpdates = document.getElementById('maxUpdates').value;
+    const speakerName = document.getElementById('speakerName').value;
+    const torsoCkpt = document.getElementById('torsoCkpt').value;
+    const batchSize = document.getElementById('batchSize').value;
+    const lr = document.getElementById('lr').value;
+    const lrTriplane = document.getElementById('lrTriplane').value;
+    
+    // 构建自定义参数JSON
+    const customParamsObj = {
+        max_updates: parseInt(maxUpdates),
+        speaker_name: speakerName || null,
+        torso_ckpt: torsoCkpt,
+        batch_size: parseInt(batchSize),
+        lr: parseFloat(lr),
+        lr_triplane: parseFloat(lrTriplane)
+    };
+    
+    // 过滤掉空值和默认值（可选）
+    const filteredParams = {};
+    for (const [key, value] of Object.entries(customParamsObj)) {
+        if (value !== null && value !== undefined && value !== '') {
+            filteredParams[key] = value;
+        }
+    }
+    
+    const customParams = JSON.stringify(filteredParams);
+    
+    if (!uploadedVideoFile) {
+        showNotification('请上传参考视频', 'error');
         return;
     }
     
@@ -70,20 +141,18 @@ function startTraining() {
     const progressBar = document.getElementById('progressBar');
     progressBar.style.display = 'block';
     
-    const data = {
-        model_name: modelName,
-        reference_video: referenceVideo,
-        gpu: gpu,
-        epochs: parseInt(epochs),
-        custom_params: customParams
-    };
+    // 创建表单数据，直接上传文件
+    const formData = new FormData();
+    formData.append('reference_video', uploadedVideoFile);
+    formData.append('model_name', modelName);
+    formData.append('gpu', gpu);
+    formData.append('epochs', epochs);
+    formData.append('custom_params', customParams);
     
+    // 调用训练API
     fetch('/api/train', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+        body: formData
     })
     .then(response => response.json())
     .then(data => {

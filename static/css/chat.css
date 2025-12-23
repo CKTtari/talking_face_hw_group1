@@ -4,18 +4,18 @@
 /* 聊天区域样式 */
 .chat-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     height: 100%;
     gap: 2rem;
 }
 
-/* 两个视频容器均分高度 */
+/* 两个视频容器均分宽度 */
 .chat-container .video-container {
     flex: 1;
     display: flex;
     flex-direction: column;
-    height: calc(50% - 1rem);
-    min-height: 0;
+    width: calc(50% - 1rem);
+    min-width: 0;
 }
 
 /* 确保视频区域使用common.css中的样式 */
@@ -83,6 +83,19 @@
     margin-top: 1rem;
 }
 
+/* 语音控制按钮样式 */
+.voice-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.btn-small {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.85rem;
+    min-width: 80px;
+}
+
 @media (max-width: 1024px) {
     .content-container {
         flex-direction: column;
@@ -94,4 +107,72 @@
     .video-container {
         height: 300px;
     }
+}
+
+/* 生成进度条样式 */
+.generation-progress-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+.generation-progress-bar {
+    width: 100%;
+    height: 12px;
+    background-color: rgba(224, 224, 224, 0.5);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.generation-progress {
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+    animation: progressPulse 2s infinite;
+}
+
+@keyframes progressPulse {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.generation-progress-text {
+    color: #666;
+    font-size: 1.1rem;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* 停止生成按钮样式 */
+.btn-danger {
+    background-color: #e53935;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-danger:hover {
+    background-color: #d32f2f;
+    box-shadow: 0 2px 4px rgba(229, 57, 53, 0.3);
+}
+
+.btn-danger:active {
+    background-color: #b71c1c;
 }

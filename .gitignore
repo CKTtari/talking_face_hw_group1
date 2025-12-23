@@ -12,3 +12,7 @@ SyncTalk/SyncTalk/
 GPT-SoVITS/
 
 test_data/
+backend/data/
+backend/temp/
+uploads/
+static/videos

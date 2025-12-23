@@ -10,7 +10,7 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/" class="nav-brand">语音识别与合成系统</a>
+            <a href="/" class="nav-brand">TALKING SYSTEM - GROUP 1</a>
             <ul class="nav-menu">
                 <li><a href="/train" class="active">模型训练</a></li>
                 <li><a href="/generate">视频生成</a></li>
@@ -62,11 +62,8 @@
                 <!-- 模型名称 -->
                 <div class="form-group">
                     <label for="modelName">模型名称</label>
-                    <select id="modelName" name="modelName">
-                        <option value="SyncTalk" selected>SyncTalk</option>
-                        <option value="Wav2Lip">Wav2Lip</option>
-                        <option value="MoFA-Talk">MoFA-Talk</option>
-                    </select>
+                    <input type="text" id="modelName" name="modelName" value="SyncTalk" readonly>
+                    <small class="field-tip">当前系统仅支持SyncTalk模型</small>
                 </div>
 
                 <!-- 参考视频地址 -->
@@ -96,9 +93,45 @@
 
                 <!-- 自定义训练参数 -->
                 <div class="form-group">
-                    <label for="customParams">自定义训练参数</label>
-                    <textarea id="customParams" name="customParams" 
-                              placeholder="输入自定义训练参数（JSON格式）" rows="4"></textarea>
+                    <label>自定义训练参数</label>
+                    <div class="custom-params-container">
+                        <div class="param-row">
+                            <div class="param-item">
+                                <label for="maxUpdates">最大更新次数 (max_updates)</label>
+                                <input type="number" id="maxUpdates" name="maxUpdates" value="10" min="1" max="1000">
+                                <small>默认值: 10</small>
+                            </div>
+                            <div class="param-item">
+                                <label for="speakerName">说话人名称 (speaker_name)</label>
+                                <input type="text" id="speakerName" name="speakerName" value="">
+                                <small>默认值: 自动生成</small>
+                            </div>
+                        </div>
+                        <div class="param-row">
+                            <div class="param-item">
+                                <label for="torsoCkpt">躯干模型路径 (torso_ckpt)</label>
+                                <input type="text" id="torsoCkpt" name="torsoCkpt" value="checkpoints/mimictalk_orig/os_secc2plane_torso">
+                                <small>默认值: checkpoints/mimictalk_orig/os_secc2plane_torso</small>
+                            </div>
+                        </div>
+                        <div class="param-row">
+                            <div class="param-item">
+                                <label for="batchSize">批次大小 (batch_size)</label>
+                                <input type="number" id="batchSize" name="batchSize" value="1" min="1" max="16">
+                                <small>默认值: 1</small>
+                            </div>
+                            <div class="param-item">
+                                <label for="lr">学习率 (lr)</label>
+                                <input type="number" id="lr" name="lr" value="0.001" step="0.0001" min="0.00001" max="0.1">
+                                <small>默认值: 0.001</small>
+                            </div>
+                            <div class="param-item">
+                                <label for="lrTriplane">三平面学习率 (lr_triplane)</label>
+                                <input type="number" id="lrTriplane" name="lrTriplane" value="0.005" step="0.0001" min="0.00001" max="0.1">
+                                <small>默认值: 0.005</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
