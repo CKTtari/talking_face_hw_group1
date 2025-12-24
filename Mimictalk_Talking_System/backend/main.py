@@ -577,7 +577,7 @@ async def clone_voice(request: Request):
                 data = {
                     "text": text,
                     "text_lang": text_lang,
-                    "prompt_lang": prompt_lang,
+                    "prompt_lang": prompt_lang,  
                     "text_split_method": "cut5",
                     "batch_size": 1
                 }

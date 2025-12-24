@@ -338,19 +338,29 @@ def api_generate():
                     'text': target_text,
                     'reference_audio': audio_base64
                 }
+                # 打印发送给语音克隆接口的参数
+                print("🔍 发送给语音克隆接口的参数:")
+                print(f"   - target_text: {target_text}")
+                print(f"   - reference_audio长度: {len(audio_base64)} 字符")
+                print(f"   - reference_audio前100字符: {audio_base64[:100]}...")
                # 调用语音克隆API
                 clone_response = requests.post(f'http://localhost:{BACKEND_PORT}/api/clone-voice', json=clone_payload)
+                # 打印语音克隆接口响应
+                print(f"📡 语音克隆接口响应状态码: {clone_response.status_code}")
+                print(f"📡 语音克隆接口响应内容: {clone_response.text}")
                 clone_data = clone_response.json()
-                
                 if clone_response.status_code == 200 and clone_data.get('success'):
                     # 使用克隆后的音频文件
                     cloned_audio_filename = clone_data.get('audio_filename')
+                    print(f"🎵 克隆音频文件名: {cloned_audio_filename}")
                     if cloned_audio_filename:
                         # 从后端数据目录获取克隆的音频文件
                         backend_data_dir = os.path.join(os.path.dirname(__file__), 'backend', 'data')
                         cloned_audio_path = os.path.join(backend_data_dir, cloned_audio_filename)
+                        print(f"📁 克隆音频文件路径: {cloned_audio_path}")
                         
                         if os.path.exists(cloned_audio_path):
+                            print(f"✅ 克隆音频文件存在，大小: {os.path.getsize(cloned_audio_path)} 字节")
                             if pitch_value != 1.0:
                                 # 直接对克隆后的音频进行音高调整
                                 from backend.video_audio_processor import VideoAudioProcessor
@@ -370,9 +380,11 @@ def api_generate():
                                 tasks[task_id]['reference_audio'] = f"cloned_{cloned_audio_filename}"
                                 print(f"✅ 使用语音克隆后的音频: {cloned_audio_filename}")
                         else:
-                            print(f"⚠️ 克隆音频文件不存在: {cloned_audio_path}")
+                            print(f"❌ 克隆音频文件不存在: {cloned_audio_path}")
                 else:
-                    print(f"⚠️ 语音克隆失败: {clone_data.get('message', '未知错误')}")
+                    print(f"❌ 语音克隆失败: {clone_data.get('message', '未知错误')}")
+                    if 'audio_filename' in clone_data:
+                        print(f"   - 失败时返回的音频文件名: {clone_data['audio_filename']}")
                     
             except Exception as e:
                 print(f"⚠️ 语音克隆过程出错: {str(e)}")
