@@ -4,6 +4,11 @@
 因此，我们建议直接使用我们提供的docker镜像。以下构建步骤仅供参考。
 
 ## 使用docker镜像
+通过网盘分享的文件：my-mimictalk_v1.0.tar
+链接: https://pan.baidu.com/s/1RDc5JderNlG1xUBkI7hbOA?pwd=9ksp 提取码: 9ksp 
+--来自百度网盘超级会员v6的分享
+在这里下载镜像
+
 将my-mimictalk:v1.0.tar放到Mimictalk_Talking_System\MimicTalk中
 执行以下命令生成容器：
 ```
@@ -11,7 +16,8 @@ docker load -i my-mimictalk:v1.0.tar
 docker compose up -d
 ```
 ## 使用源代码从头构建（不推荐）
-按照正常的docker构建流程，从dockerfile构建镜像。理论上没问题，但可能遇到网络问题或者进去以后可能有其他环境问题。可以联系组长解决。
+按照正常的docker构建流程，从dockerfile构建镜像。
+理论上没问题，但可能遇到网络问题或者进去以后可能有其他环境问题。可以联系组长解决。
 
 ## 下载预训练与第三方模型
 ### 3DMM BFM模型
@@ -56,6 +62,7 @@ checkpoints_mimictalk/
 
 ## MimicTalk训练与推理命令
 ```
+conda activate mimictalk
 python inference/train_mimictalk_on_a_video.py # train the model, this may take 10 minutes for 2,000 steps
 python inference/mimictalk_infer.py # infer the model
 ```
