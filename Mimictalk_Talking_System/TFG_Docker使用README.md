@@ -4,10 +4,10 @@
 因此，我们建议直接使用我们提供的docker镜像。以下构建步骤仅供参考。
 
 ## 使用docker镜像
-将mimictalk_hw.tar放到Mimictalk_Talking_System\MimicTalk中
+将my-mimictalk:v1.0.tar放到Mimictalk_Talking_System\MimicTalk中
 执行以下命令生成容器：
 ```
-docker load -i mimictalk.tar
+docker load -i my-mimictalk:v1.0.tar
 docker compose up -d
 ```
 ## 使用源代码从头构建（不推荐）
