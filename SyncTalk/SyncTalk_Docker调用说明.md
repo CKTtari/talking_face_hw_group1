@@ -1,4 +1,18 @@
-# SyncTalk Docker 调用说明
+# Mimictalk Docker 配置说明
+
+基于我们的配置经验，自行构建docker镜像耗时较长、在不同机器上配置环境也会遇到各种问题。
+因此，我们建议直接使用我们提供的docker镜像。以下构建步骤仅供参考。
+
+下载源代码
+compose
+start
+
+或者从镜像
+
+下载模型
+测试命令
+
+
 
 ## 构建Docker镜像
 ```bash

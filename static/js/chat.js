@@ -3,6 +3,9 @@
 // 生成状态跟踪变量
 let isGenerating = false;
 let currentTaskId = null;
+// 添加模拟进度变量
+let simulateProgress = 0;
+let simulateProgressInterval = null;
 
 // 全局变量，用于存储上传的文件对象
 let uploadedAudioFile = null;
@@ -32,6 +35,15 @@ window.addEventListener('DOMContentLoaded', function() {
     if (pitchControl && pitchValue) {
         pitchControl.addEventListener('input', function() {
             pitchValue.textContent = this.value;
+        });
+    }
+    
+    // 监听speed控制变化
+    const speedControl = document.getElementById('speedControl');
+    const speedValue = document.getElementById('speedValue');
+    if (speedControl && speedValue) {
+        speedControl.addEventListener('input', function() {
+            speedValue.textContent = this.value;
         });
     }
     
@@ -280,7 +292,14 @@ function updateGenerationUI(isGenerating) {
         
         // 更新语音按钮为停止生成
         updateVoiceButtons();
+        
+        // 重置模拟进度并开始模拟进度增长
+        simulateProgress = 0;
+        startSimulateProgress();
     } else {
+        // 停止模拟进度增长
+        stopSimulateProgress();
+        
         // 只有在没有视频播放时才恢复原始视频容器内容
         if (!characterVideoPlaying) {
             characterVideo.innerHTML = '<p>克隆人物视频将显示在此（由后端生成）</p>';
@@ -300,6 +319,34 @@ function updateGenerationUI(isGenerating) {
     }
 }
 
+// 开始模拟进度增长
+function startSimulateProgress() {
+    // 清除可能存在的旧定时器
+    stopSimulateProgress();
+    
+    // 设置模拟进度初始值
+    simulateProgress = 0;
+    
+    // 每100ms更新一次模拟进度
+    simulateProgressInterval = setInterval(() => {
+        // 每次增加剩余进度的1%
+        const remainingProgress = 100 - simulateProgress;
+        simulateProgress += remainingProgress * 0.001;
+        // 确保进度不会超过99%
+        simulateProgress = Math.min(99, simulateProgress);
+        // 更新进度条
+        updateProgress(simulateProgress);
+    }, 100);
+}
+
+// 停止模拟进度增长
+function stopSimulateProgress() {
+    if (simulateProgressInterval) {
+        clearInterval(simulateProgressInterval);
+        simulateProgressInterval = null;
+    }
+}
+
 // 更新进度条
 function updateProgress(progress) {
     const progressElement = document.querySelector('.generation-progress');
@@ -308,7 +355,7 @@ function updateProgress(progress) {
     if (progressElement && progressText) {
         progress = Math.min(100, Math.max(0, progress));
         progressElement.style.width = progress + '%';
-        progressText.textContent = `视频生成中... ${progress}%`;
+        progressText.textContent = `视频生成中... ${Math.round(progress)}%`;
     }
 }
 
@@ -332,6 +379,9 @@ function stopGeneration() {
             showNotification('停止生成请求失败: ' + error.message, 'error');
         })
         .finally(() => {
+            // 停止模拟进度增长
+            stopSimulateProgress();
+            
             // 恢复界面状态
             updateGenerationUI(false);
             isGenerating = false;
@@ -400,6 +450,8 @@ function generateResponseAudioVideo(botResponse) {
     const modelDir = document.getElementById('modelDir').value;
     const modelName = 'SyncTalk'; // 使用固定模型名，与generate.js一致
     const gpuSelect = document.getElementById('gpuSelect').value;
+    const pitch = document.getElementById('pitchControl').value;
+    const speed = document.getElementById('speedControl').value;
     
     // 保存模型目录地址
     localStorage.setItem('modelDir', modelDir);
@@ -414,6 +466,8 @@ function generateResponseAudioVideo(botResponse) {
     formData.append('model_dir', modelDir);
     formData.append('gpu', gpuSelect);
     formData.append('target_text', botResponse);
+    formData.append('pitch', pitch);
+    formData.append('speed', speed);
     
     // 调试信息：显示上传的音频文件
     console.log('上传的参考音频文件:', uploadedAudioFile);
@@ -456,6 +510,12 @@ function pollTaskStatus(taskId) {
             .then(response => response.json())
             .then(task => {
                 if (task.status === 'completed') {
+                    // 停止模拟进度增长
+                    stopSimulateProgress();
+                    
+                    // 设置进度为100%
+                    updateProgress(100);
+                    
                     if (task.video_url) {
                         // 提取视频文件名
                         const videoFilename = task.video_url.split('/').pop();
@@ -465,14 +525,15 @@ function pollTaskStatus(taskId) {
                     isGenerating = false;
                     currentTaskId = null;
                 } else if (task.status === 'failed') {
+                    // 停止模拟进度增长
+                    stopSimulateProgress();
+                    
                     showNotification('视频生成失败', 'error');
                     // 恢复界面状态
                     updateGenerationUI(false);
                     isGenerating = false;
                     currentTaskId = null;
                 } else {
-                    // 更新进度显示（如果有进度信息）
-                    updateProgress(task.progress || 0);
                     // 继续轮询
                     setTimeout(checkStatus, 1000);
                 }

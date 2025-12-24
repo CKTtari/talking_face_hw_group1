@@ -246,21 +246,32 @@ async def train(request: Request):
                 
                 # 6. 复制验证视频（可选）
                 local_val_video_path = os.path.join(cfg.LOCAL_TEMP_DIR, f"{speaker_name}_val.mp4")
-                container_val_video_path = os.path.join(container_work_dir, f"val_step{max_updates}.mp4")
                 # 前端可访问的静态目录路径
                 frontend_video_path = os.path.join("E:\projects\talking_face_hw_group1\static\videos", f"{speaker_name}_val.mp4")
                 try:
-                    docker_cp_container_to_local(container_val_video_path, local_val_video_path)
-                    yield f"📹 验证视频保存到：{local_val_video_path}\n".encode("utf-8")
-                    
-                    # 复制到前端静态目录
-                    import shutil
-                    shutil.copy2(local_val_video_path, frontend_video_path)
-                    yield f"📤 验证视频已复制到前端静态目录：{frontend_video_path}\n".encode("utf-8")
-                    
-                    # 在响应中包含前端可访问的视频URL
-                    video_url = f"/static/videos/{speaker_name}_val.mp4"
-                    yield f"🔗 前端可访问的视频URL：{video_url}\n".encode("utf-8")
+                    # 列出容器内所有val_step*.mp4文件，找出数字最大的那个
+                    list_cmd = ["docker", "exec", "mimictalk", "bash", "-c", f"ls {container_work_dir}/val_step*.mp4 2>/dev/null | sort -V"]
+                    result = subprocess.run(list_cmd, capture_output=True, text=True)
+                    if result.returncode == 0 and result.stdout.strip():
+                        # 获取所有val_step视频文件列表
+                        val_videos = result.stdout.strip().split('\n')
+                        if val_videos:
+                            # 选择最后一个（数字最大的）
+                            container_val_video_path = val_videos[-1].strip()
+                            
+                            docker_cp_container_to_local(container_val_video_path, local_val_video_path)
+                            yield f"📹 验证视频保存到：{local_val_video_path}\n".encode("utf-8")
+                            
+                            # 复制到前端静态目录
+                            import shutil
+                            shutil.copy2(local_val_video_path, frontend_video_path)
+                            yield f"📤 验证视频已复制到前端静态目录：{frontend_video_path}\n".encode("utf-8")
+                            
+                            # 在响应中包含前端可访问的视频URL
+                            video_url = f"/static/videos/{speaker_name}_val.mp4"
+                            yield f"🔗 前端可访问的视频URL：{video_url}\n".encode("utf-8")
+                    else:
+                        yield f"⚠️  容器内未找到val_step*.mp4文件\n".encode("utf-8")
                 except Exception as e:
                     yield f"⚠️  验证视频复制失败：{str(e)}\n".encode("utf-8")
                 
@@ -621,7 +632,7 @@ if __name__ == "__main__":
     
     # 启动主服务（不再自动启动语音克隆服务）
     print(f"🚀 启动主服务...")
-    print(f"📡 主服务端口: 8081")
+    print(f"📡 主服务端口: {cfg.LOCAL_API_PORT}")
     
     # 启动时加上 --reload-dir 避免热重载冲突（可选）
-    uvicorn.run(app, host="0.0.0.0", port=8081, reload=False)
+    uvicorn.run(app, host="0.0.0.0", port=cfg.LOCAL_API_PORT, reload=False)

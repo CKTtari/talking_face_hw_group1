@@ -16,3 +16,4 @@ backend/data/
 backend/temp/
 uploads/
 static/videos
+backend/local_ckpts

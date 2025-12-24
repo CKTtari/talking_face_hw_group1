@@ -24,7 +24,7 @@ def generate_llm_response(user_message, api_key, model="deepseek-chat"):
         response = client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", "content": "你是一个聊天伙伴，用自然口语化的方式回应，内容简洁，像真人聊天一样"},
+                {"role": "system", "content": "你是一个聊天伙伴，用自然口语化的方式回应，内容简洁，像真人聊天一样。请确保你的回答只能使用中文，绝对不能包含任何英文单词或字母。"},
                 {"role": "user", "content": user_message},
             ],
             stream=False

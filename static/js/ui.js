@@ -232,18 +232,6 @@ const UI = (function(){
         {sel: '.btn-stop', text: '点击停止当前对话，重置界面。'}
     ];
 
-    const tourStepsWorkflow = [
-        {sel: '.nav-brand', text: '欢迎使用一条龙体验流程！这是导航栏标题，点击可返回首页。'},
-        {sel: '.workflow-progress', text: '这是流程进度条，显示当前所处的步骤。总共包含5个步骤，从基础配置到实时对话。'},
-        {sel: '.left-panel.workflow-info', text: '当前面板包含三个主要部分：当前步骤说明、任务进度显示和文件预览区域。'},
-        {sel: '#stepDescription', text: '这里会显示当前步骤的详细说明和提示信息，帮助您了解每个步骤的操作要点。'},
-        {sel: '#previewArea', text: '选择或上传文件后，预览内容会显示在这里，让您直观查看文件内容。'},
-        {sel: '.right-panel.workflow-forms', text: '该面板用于配置各步骤的参数，当前显示的是基础配置页面。'},
-        {sel: '#coreModel', text: '选择核心模型，如SyncTalk、Wav2Lip或MoFA-Talk，这是整个流程的基础。'},
-        {sel: '#referenceVideo', text: '输入参考视频路径或上传视频文件，用于模型训练。视频需要包含清晰的人脸，时长建议5-30秒。'},
-        {sel: '.workflow-actions', text: '底部的操作按钮用于导航到上一步、下一步或跳过当前步骤，完成整个工作流程。'}
-    ];
-
     // 根据页面选择steps
     let tourSteps = [];
     if (window.location.pathname.includes('/train')) {
@@ -252,8 +240,6 @@ const UI = (function(){
         tourSteps = tourStepsGenerate;
     } else if (window.location.pathname.includes('/chat')) {
         tourSteps = tourStepsChat;
-    } else if (window.location.pathname.includes('/workflow')) {
-        tourSteps = tourStepsWorkflow;
     } else {
         tourSteps = tourStepsTrain; // 默认
     }

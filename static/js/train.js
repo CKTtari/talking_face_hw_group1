@@ -4,6 +4,10 @@
 let uploadedVideoFile = null;
 let uploadedAudioFile = null;
 
+// 添加模拟进度变量
+let simulateProgress = 0;
+let simulateProgressInterval = null;
+
 // 页面加载时获取GPU信息
 window.addEventListener('DOMContentLoaded', function() {
     loadGPUInfo();
@@ -98,7 +102,6 @@ function uploadFile(type) {
 function startTraining() {
     const modelName = document.getElementById('modelName').value;
     const gpu = document.getElementById('gpuSelect').value;
-    const epochs = document.getElementById('epochs').value;
     
     // 获取自定义参数
     const maxUpdates = document.getElementById('maxUpdates').value;
@@ -141,12 +144,18 @@ function startTraining() {
     const progressBar = document.getElementById('progressBar');
     progressBar.style.display = 'block';
     
+    // 设置进度条初始值
+    updateProgressBar(0);
+    
+    // 开始模拟进度增长
+    simulateProgress = 0;
+    startSimulateProgress();
+    
     // 创建表单数据，直接上传文件
     const formData = new FormData();
     formData.append('reference_video', uploadedVideoFile);
     formData.append('model_name', modelName);
     formData.append('gpu', gpu);
-    formData.append('epochs', epochs);
     formData.append('custom_params', customParams);
     
     // 调用训练API
@@ -160,17 +169,51 @@ function startTraining() {
             showNotification('训练已启动', 'success');
             monitorTrainingProgress(data.task_id);
         } else {
+            // 停止模拟进度增长
+            stopSimulateProgress();
+            
             showNotification('启动失败: ' + data.error, 'error');
             trainButton.disabled = false;
             trainButton.textContent = '开始训练';
         }
     })
     .catch(error => {
+        // 停止模拟进度增长
+        stopSimulateProgress();
+        
         console.error('Error:', error);
         showNotification('请求出错: ' + error.message, 'error');
         trainButton.disabled = false;
         trainButton.textContent = '开始训练';
     });
+}
+
+// 开始模拟进度增长
+function startSimulateProgress() {
+    // 清除可能存在的旧定时器
+    stopSimulateProgress();
+    
+    // 设置模拟进度初始值
+    simulateProgress = 0;
+    
+    // 每100ms更新一次模拟进度
+    simulateProgressInterval = setInterval(() => {
+        // 每次增加剩余进度的1%
+        const remainingProgress = 100 - simulateProgress;
+        simulateProgress += remainingProgress * 0.001;
+        // 确保进度不会超过99%
+        simulateProgress = Math.min(99, simulateProgress);
+        // 更新进度条
+        updateProgressBar(simulateProgress);
+    }, 100);
+}
+
+// 停止模拟进度增长
+function stopSimulateProgress() {
+    if (simulateProgressInterval) {
+        clearInterval(simulateProgressInterval);
+        simulateProgressInterval = null;
+    }
 }
 
 // 监控训练进度
@@ -180,19 +223,22 @@ function monitorTrainingProgress(taskId) {
         .then(response => response.json())
         .then(task => {
             if (task.error) {
+                // 停止模拟进度增长
+                stopSimulateProgress();
+                
                 clearInterval(pollInterval);
                 showNotification('任务查询失败', 'error');
                 return;
             }
             
-            // 更新进度条
-            const progressFill = document.getElementById('progressFill');
-            const progressText = document.getElementById('progressText');
-            progressFill.style.width = task.progress + '%';
-            progressText.textContent = task.progress + '%';
-            
-            // 训练完成
+            // 检查任务是否完成
             if (task.status === 'completed') {
+                // 停止模拟进度增长
+                stopSimulateProgress();
+                
+                // 设置进度为100%
+                updateProgressBar(100);
+                
                 clearInterval(pollInterval);
                 if (task.video_url) {
                     displayVideo(task.video_url);
@@ -200,17 +246,33 @@ function monitorTrainingProgress(taskId) {
                 showNotification('训练完成！', 'success');
                 document.querySelector('.btn-train').disabled = false;
                 document.querySelector('.btn-train').textContent = '开始训练';
-            } else if (task.status === 'error') {
+            } else if (task.status === 'failed') {
+                // 停止模拟进度增长
+                stopSimulateProgress();
+                
                 clearInterval(pollInterval);
-                showNotification('训练出错', 'error');
+                showNotification('训练失败: ' + task.error, 'error');
                 document.querySelector('.btn-train').disabled = false;
                 document.querySelector('.btn-train').textContent = '开始训练';
             }
         })
         .catch(error => {
+            // 停止模拟进度增长
+            stopSimulateProgress();
+            
             console.error('Error:', error);
+            showNotification('获取训练状态失败: ' + error.message, 'error');
         });
     }, 1000);
+}
+
+// 更新进度条
+function updateProgressBar(progress) {
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    progress = Math.min(100, Math.max(0, progress));
+    progressFill.style.width = Math.round(progress) + '%';
+    progressText.textContent = Math.round(progress) + '%';
 }
 
 // 显示视频

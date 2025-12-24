@@ -70,11 +70,9 @@
                 <div class="form-group">
                     <label for="modelDir">模型目录地址</label>
                     <input type="text" id="modelDir" name="modelDir" 
-                           placeholder="输入完整的模型目录路径（如：E:\\projects\\MimicTalk\\checkpoints_mimictalk\\Lieu）" 
-                           style="width: calc(100% - 100px);">
+                           placeholder="输入完整的模型目录路径（如：E:\projects\MimicTalk\checkpoints_mimictalk\Lieu）">
                     <button type="button" class="btn-upload" onclick="selectDirectory()">浏览</button>
-                    <small class="field-tip">⚠️ 由于浏览器安全限制，"浏览"功能无法获取完整路径，
-                    请手动输入完整的模型目录路径。系统将直接使用您提供的路径，不会进行相对路径处理。</small>
+                    <small class="field-tip">由于浏览器限制，请手动复制文件夹路径</small>
                 </div>
 
                 <!-- 参考音频地址 -->
@@ -122,11 +120,15 @@
                     <small class="field-tip">提示：正值升调，负值降调，会应用于目标音频合成。</small>
                 </div>
 
-                <!-- 抠图 / TFG 支持 -->
+                <!-- 视频加速减速 -->
                 <div class="form-group">
-                    <label><input type="checkbox" id="tfgRemoveBg"> 启用抠图换背景 (TFG)</label>
-                    <small class="field-tip">勾选后会尝试对参考视频/图片进行背景替换（需要后端支持）。</small>
+                    <label for="speedControl">视频加速减速 (倍速)</label>
+                    <input type="range" id="speedControl" name="speedControl" min="0.5" max="2.0" step="0.1" value="1.0">
+                    <div class="range-value">当前: <span id="speedValue">1.0</span> 倍速</div>
+                    <small class="field-tip">提示：小于1减速，大于1加速，会应用于生成的视频。</small>
                 </div>
+
+
 
                 <!-- 生成视频按钮 -->
                 <button type="button" class="btn-generate" onclick="generateVideo()">生成视频</button>

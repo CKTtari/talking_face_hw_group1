@@ -4,6 +4,10 @@
 let uploadedAudioFile = null;
 let uploadedVideoFile = null;
 
+// 添加模拟进度变量
+let simulateProgress = 0;
+let simulateProgressInterval = null;
+
 // 页面加载时获取GPU信息和保存的模型目录
 window.addEventListener('DOMContentLoaded', function() {
     loadGPUInfo();
@@ -12,7 +16,31 @@ window.addEventListener('DOMContentLoaded', function() {
     if (savedModelDir) {
         document.getElementById('modelDir').value = savedModelDir;
     }
+    
+    // 初始化滑块控件
+    initControls();
 });
+
+// 初始化控件
+function initControls() {
+    // 音频升降调滑块
+    const pitchControl = document.getElementById('pitchControl');
+    const pitchValue = document.getElementById('pitchValue');
+    if (pitchControl && pitchValue) {
+        pitchControl.addEventListener('input', function() {
+            pitchValue.textContent = this.value;
+        });
+    }
+    
+    // 视频加速减速滑块
+    const speedControl = document.getElementById('speedControl');
+    const speedValue = document.getElementById('speedValue');
+    if (speedControl && speedValue) {
+        speedControl.addEventListener('input', function() {
+            speedValue.textContent = this.value;
+        });
+    }
+}
 
 // 加载GPU信息
 function loadGPUInfo() {
@@ -132,6 +160,8 @@ function generateVideo() {
     const modelDir = document.getElementById('modelDir').value;
     const modelName = document.getElementById('modelName').value;
     const gpu = document.getElementById('gpuSelect').value;
+    const pitch = document.getElementById('pitchControl').value;
+    const speed = document.getElementById('speedControl').value;
     
     if (!uploadedAudioFile || !uploadedVideoFile || !modelDir) {
         showNotification('请上传音频和视频文件并选择模型目录', 'error');
@@ -152,6 +182,10 @@ function generateVideo() {
     // 设置进度条初始值
     updateProgressBar(0);
     
+    // 开始模拟进度增长
+    simulateProgress = 0;
+    startSimulateProgress();
+    
     // 创建表单数据，直接上传文件
     const formData = new FormData();
     formData.append('reference_audio', uploadedAudioFile);
@@ -160,6 +194,8 @@ function generateVideo() {
     formData.append('model_name', modelName);
     formData.append('gpu', gpu);
     formData.append('target_text', targetText);
+    formData.append('pitch', pitch);
+    formData.append('speed', speed);
     
     // 调用生成API
     fetch('/api/generate', {
@@ -172,6 +208,9 @@ function generateVideo() {
             showNotification('视频生成已启动', 'success');
             monitorGenerationProgress(data.task_id);
         } else {
+            // 停止模拟进度增长
+            stopSimulateProgress();
+            
             showNotification('启动失败: ' + data.error, 'error');
             generateButton.disabled = false;
             generateButton.textContent = '生成视频';
@@ -179,12 +218,52 @@ function generateVideo() {
         }
     })
     .catch(error => {
+        // 停止模拟进度增长
+        stopSimulateProgress();
+        
         console.error('请求出错:', error);
         showNotification('请求出错: ' + error.message, 'error');
         generateButton.disabled = false;
         generateButton.textContent = '生成视频';
         progressBar.style.display = 'none';
     });
+}
+
+// 开始模拟进度增长
+function startSimulateProgress() {
+    // 清除可能存在的旧定时器
+    stopSimulateProgress();
+    
+    // 设置模拟进度初始值
+    simulateProgress = 0;
+    
+    // 每100ms更新一次模拟进度
+    simulateProgressInterval = setInterval(() => {
+        // 每次增加剩余进度的1%
+        const remainingProgress = 100 - simulateProgress;
+        simulateProgress += remainingProgress * 0.001;
+        // 确保进度不会超过99%
+        simulateProgress = Math.min(99, simulateProgress);
+        // 更新进度条
+        updateProgressBar(simulateProgress);
+    }, 100);
+}
+
+// 停止模拟进度增长
+function stopSimulateProgress() {
+    if (simulateProgressInterval) {
+        clearInterval(simulateProgressInterval);
+        simulateProgressInterval = null;
+    }
+}
+
+// 更新进度条
+function updateProgressBar(progress) {
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const integerProgress = Math.floor(progress);
+    progressFill.style.width = integerProgress + '%';
+    progressText.textContent = integerProgress + '%';
 }
 
 // 监控生成进度
@@ -194,41 +273,40 @@ function monitorGenerationProgress(taskId) {
     
     // 使用setInterval定期查询进度
     const intervalId = setInterval(() => {
-        fetch(`/api/generate/status/${taskId}`)
+        fetch(`/api/task/${taskId}`)
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    // 更新进度条
-                    updateProgressBar(data.progress);
-                    
-                    // 更新状态信息
-                    const statusInfo = document.getElementById('statusInfo');
-                    if (statusInfo) {
-                        statusInfo.textContent = `状态: ${data.status} | 进度: ${data.progress}%`;
-                    }
-                    
-                    // 检查任务是否完成
-                    if (data.status === 'completed') {
-                        clearInterval(intervalId);
-                        showNotification('视频生成完成！', 'success');
-                        generateButton.disabled = false;
-                        generateButton.textContent = '生成视频';
-                        progressBar.style.display = 'none';
-                        
-                        // 如果有视频URL，显示视频
-                        if (data.video_url) {
-                            displayVideo(data.video_url);
-                        }
-                    } else if (data.status === 'failed') {
-                        clearInterval(intervalId);
-                        showNotification('视频生成失败: ' + data.error, 'error');
-                        generateButton.disabled = false;
-                        generateButton.textContent = '生成视频';
-                        progressBar.style.display = 'none';
-                    }
-                } else {
+                if (data.error) {
                     clearInterval(intervalId);
-                    showNotification('获取进度失败: ' + data.error, 'error');
+                    showNotification('任务查询失败: ' + data.error, 'error');
+                    generateButton.disabled = false;
+                    generateButton.textContent = '生成视频';
+                    progressBar.style.display = 'none';
+                    return;
+                }
+                
+                // 更新进度条
+                updateProgressBar(data.progress);
+                
+                // 更新状态信息
+                const statusInfo = document.getElementById('statusInfo');
+                if (statusInfo) {
+                    statusInfo.textContent = `状态: ${data.status} | 进度: ${data.progress}%`;
+                }
+                
+                // 检查任务是否完成
+                if (data.status === 'completed') {
+                    clearInterval(intervalId);
+                    if (data.video_url) {
+                        displayVideo(data.video_url);
+                    }
+                    showNotification('视频生成完成！', 'success');
+                    generateButton.disabled = false;
+                    generateButton.textContent = '生成视频';
+                    progressBar.style.display = 'none';
+                } else if (data.status === 'error' || data.status === 'failed') {
+                    clearInterval(intervalId);
+                    showNotification('生成出错: ' + (data.error || '未知错误'), 'error');
                     generateButton.disabled = false;
                     generateButton.textContent = '生成视频';
                     progressBar.style.display = 'none';
@@ -242,55 +320,7 @@ function monitorGenerationProgress(taskId) {
                 generateButton.textContent = '生成视频';
                 progressBar.style.display = 'none';
             });
-    }, 2000); // 每2秒查询一次
-}
-
-// 更新进度条
-function updateProgressBar(progress) {
-    const progressFill = document.getElementById('progressFill');
-    const progressText = document.getElementById('progressText');
-    progressFill.style.width = progress + '%';
-    progressText.textContent = progress + '%';
-}
-
-// 监控生成进度
-function monitorGenerationProgress(taskId) {
-    const pollInterval = setInterval(() => {
-        fetch(`/api/task/${taskId}`)
-        .then(response => response.json())
-        .then(task => {
-            if (task.error) {
-                clearInterval(pollInterval);
-                showNotification('任务查询失败', 'error');
-                return;
-            }
-            
-            // 更新进度条
-            const progressFill = document.getElementById('progressFill');
-            const progressText = document.getElementById('progressText');
-            progressFill.style.width = task.progress + '%';
-            progressText.textContent = task.progress + '%';
-            
-            // 生成完成
-            if (task.status === 'completed') {
-                clearInterval(pollInterval);
-                if (task.video_url) {
-                    displayVideo(task.video_url);
-                }
-                showNotification('视频生成完成！', 'success');
-                document.querySelector('.btn-generate').disabled = false;
-                document.querySelector('.btn-generate').textContent = '生成视频';
-            } else if (task.status === 'error') {
-                clearInterval(pollInterval);
-                showNotification('生成出错', 'error');
-                document.querySelector('.btn-generate').disabled = false;
-                document.querySelector('.btn-generate').textContent = '生成视频';
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }, 1000);
+    }, 1000); // 每1秒查询一次
 }
 
 // 显示视频

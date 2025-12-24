@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, send_file
+from backend.video_audio_processor import VideoAudioProcessor
 import os
 import subprocess
 import threading
@@ -8,6 +9,9 @@ from datetime import datetime
 import json
 import tempfile
 import uuid
+
+# 配置变量
+BACKEND_PORT = 8083  # 后端服务端口
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads')
@@ -21,7 +25,7 @@ tasks = {}
 
 # 后端服务状态
 backend_services = {
-    'main': {'port': 8081, 'status': 'stopped', 'process': None},
+    'main': {'port': BACKEND_PORT, 'status': 'stopped', 'process': None},
     'voice': {'port': 8001, 'status': 'stopped', 'process': None}
 }
 
@@ -97,7 +101,7 @@ def start_all_backend_services():
     # 启动主服务
     main_script = os.path.join(os.path.dirname(__file__), 'backend', 'main.py')
     if os.path.exists(main_script):
-        start_backend_service('main', main_script, 8081)
+        start_backend_service('main', main_script, BACKEND_PORT)
     
     print("📊 后端服务启动状态:")
     for service, info in backend_services.items():
@@ -140,11 +144,6 @@ def chat():
     """实时对话页面"""
     return render_template('chat.html')
 
-@app.route('/workflow')
-def workflow():
-    """一条龙体验页面"""
-    return render_template('workflow.html')
-
 @app.route('/api/backend-status')
 def backend_status():
     """检查后端服务状态"""
@@ -169,10 +168,16 @@ def api_train():
         video_file = request.files['reference_video']
         model_name = request.form.get('model_name', 'SyncTalk')
         gpu = request.form.get('gpu', 'GPU0')
-        epochs = int(request.form.get('epochs', 10))
         custom_params = request.form.get('custom_params', '')
         
         task_id = f"train_{datetime.now().timestamp()}"
+        
+        # 解析custom_params获取max_updates
+        try:
+            custom_params_dict = json.loads(custom_params)
+            max_updates = custom_params_dict.get('max_updates', 10)
+        except json.JSONDecodeError:
+            max_updates = 10
         
         tasks[task_id] = {
             'type': 'train',
@@ -180,7 +185,7 @@ def api_train():
             'model_name': model_name,
             'reference_video': video_file.filename,
             'gpu': gpu,
-            'epochs': epochs,
+            'max_updates': max_updates,
             'custom_params': custom_params,
             'progress': 0,
             'video_url': None,
@@ -193,7 +198,7 @@ def api_train():
         
         try:
             # 调用后端FastAPI训练API - 使用JSON格式
-            backend_url = "http://localhost:8081/api/train"
+            backend_url = f"http://localhost:{BACKEND_PORT}/api/train"
             
             # 读取视频文件内容并转换为Base64编码
             with open(temp_video_path, 'rb') as f:
@@ -205,7 +210,7 @@ def api_train():
             
             # 准备默认参数
             params = {
-                'max_updates': epochs,  # 映射epochs到max_updates
+                'max_updates': max_updates,  # 使用解析出的max_updates或默认值
                 'speaker_name': f"speaker_{uuid.uuid4().hex[:8]}",
                 'torso_ckpt': 'checkpoints/mimictalk_orig/os_secc2plane_torso',
                 'batch_size': 1,
@@ -285,6 +290,8 @@ def api_generate():
         model_dir = request.form.get('model_dir', '')
         gpu = request.form.get('gpu', 'GPU0')
         target_text = request.form.get('target_text', '')
+        pitch = request.form.get('pitch', 0)  # 音频升降调
+        speed = request.form.get('speed', 1.0)  # 视频加速减速
         
         task_id = f"generate_{datetime.now().timestamp()}"
         
@@ -325,7 +332,7 @@ def api_generate():
                     'reference_audio': audio_base64
                 }
                # 调用语音克隆API
-                clone_response = requests.post('http://localhost:8081/api/clone-voice', json=clone_payload)
+                clone_response = requests.post(f'http://localhost:{BACKEND_PORT}/api/clone-voice', json=clone_payload)
                 clone_data = clone_response.json()
                 
                 if clone_response.status_code == 200 and clone_data.get('success'):
@@ -350,7 +357,7 @@ def api_generate():
         
         try:
             # 调用后端FastAPI推理API
-            backend_url = "http://localhost:8081/api/infer"
+            backend_url = f"http://localhost:{BACKEND_PORT}/api/infer"
             with open(final_audio_path, 'rb') as audio_file:
                 files = {'audio_file': audio_file}
                 data = {
@@ -368,14 +375,61 @@ def api_generate():
                 # 获取生成的视频路径
                 generated_video_path = response_data['data']['本地生成视频路径']
                 
-                # 复制到static目录以便前端访问
-                static_video_path = os.path.join(app.static_folder, 'videos', os.path.basename(generated_video_path))
-                import shutil
-                shutil.copy(generated_video_path, static_video_path)
+                # 检查生成的视频文件是否存在
+                if not os.path.exists(generated_video_path):
+                    raise Exception(f"生成的视频文件不存在: {generated_video_path}")
                 
-                tasks[task_id]['status'] = 'completed'
-                tasks[task_id]['progress'] = 100
-                tasks[task_id]['video_url'] = f'/static/videos/{os.path.basename(generated_video_path)}'
+                # 创建视频音频处理器实例
+                processor = VideoAudioProcessor()
+                
+                # 处理视频（应用音频升降调和视频加速减速）
+                processed_video_path = os.path.join(os.path.dirname(generated_video_path), f"processed_{os.path.basename(generated_video_path)}")
+                
+                # 执行处理 - 当pitch或speed不等于1时才执行后处理
+                pitch_value = float(pitch) if pitch else 1.0
+                speed_value = float(speed) if speed else 1.0
+                
+                print(f"🔍 后处理参数检查: pitch={pitch_value}, speed={speed_value}")
+                
+                if pitch_value != 1.0 or speed_value != 1.0:
+                    print(f"🔧 开始执行视频音频后处理")
+                    print(f"   输入视频: {generated_video_path}")
+                    print(f"   输出视频: {processed_video_path}")
+                    print(f"   处理参数: pitch={pitch_value}, speed={speed_value}")
+                    
+                    if not processor.adjust_video_audio(generated_video_path, processed_video_path, pitch, speed):
+                        # 如果处理失败，直接使用原始视频
+                        processed_video_path = generated_video_path
+                        print(f"⚠️  视频音频处理失败，使用原始视频: {processed_video_path}")
+                    else:
+                        print(f"✅  视频音频后处理完成: {processed_video_path}")
+                else:
+                    # 当pitch和speed都是1时，直接使用原始视频
+                    processed_video_path = generated_video_path
+                    print(f"✅  无需处理，使用原始视频: {processed_video_path}")
+                
+                # 确保static/videos目录存在
+                static_videos_dir = os.path.join(app.static_folder, 'videos')
+                os.makedirs(static_videos_dir, exist_ok=True)
+                
+                # 复制处理后的视频到static目录以便前端访问
+                static_video_path = os.path.join(static_videos_dir, os.path.basename(processed_video_path))
+                import shutil
+                try:
+                    shutil.copy(processed_video_path, static_video_path)
+                    print(f"✅ 视频复制到static目录: {static_video_path}")
+                    
+                    tasks[task_id]['status'] = 'completed'
+                    tasks[task_id]['progress'] = 100
+                    tasks[task_id]['video_url'] = f'/static/videos/{os.path.basename(processed_video_path)}'
+                except Exception as e:
+                    print(f"❌ 复制视频到static目录失败: {e}")
+                    # 如果复制失败，尝试直接使用本地临时文件路径
+                    # 注意：这不是最佳实践，仅作为临时解决方案
+                    tasks[task_id]['status'] = 'completed'
+                    tasks[task_id]['progress'] = 100
+                    # 直接提供本地文件路径，让前端能够访问
+                    tasks[task_id]['video_url'] = f'/api/download?file_path={processed_video_path}'
             else:
                 tasks[task_id]['status'] = 'failed'
                 raise Exception(f"推理失败：{response_data.get('msg', '未知错误')}")
@@ -422,7 +476,7 @@ def get_models():
     """获取可用的模型列表"""
     try:
         # 调用后端服务获取真实的模型列表
-        response = requests.get('http://localhost:8081/api/models')
+        response = requests.get(f'http://localhost:{BACKEND_PORT}/api/models')
         if response.status_code == 200:
             return response.json(), 200
         else:
@@ -536,7 +590,7 @@ def clone_voice():
         
         # 调用后端语音克隆服务
         response = requests.post(
-            'http://localhost:8081/api/clone-voice',
+            f'http://localhost:{BACKEND_PORT}/api/clone-voice',
             json={
                 'text': data['text'],
                 'reference_audio': data['reference_audio']
@@ -563,7 +617,7 @@ def get_voice_clone_models():
     """获取可用的语音克隆模型列表"""
     try:
         # 调用后端服务获取模型列表
-        response = requests.get('http://localhost:8081/api/voice-clone-models')
+        response = requests.get(f'http://localhost:{BACKEND_PORT}/api/voice-clone-models')
         
         if response.status_code == 200:
             result = response.json()
