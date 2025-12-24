@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  tfg_benchmark:
+    image: tfg_benchmark:latest
+    runtime: nvidia
+    network_mode: "host"
+    environment:
+      NVIDIA_VISIBLE_DEVICES: "0"  # 只使用 GPU 0
+    volumes:
+      - ./eval_data:/app/eval_data  # 挂载 eval_data 目录
+      # - ./models:/app/models         # 可选：挂载模型目录
+      - ./evaluation_results:/app/evaluation_results       # 可选：挂载结果目录
+    ports:
+      - "8888:8888"                  # 可选：如果需要 Jupyter
+    stdin_open: true
+    tty: true

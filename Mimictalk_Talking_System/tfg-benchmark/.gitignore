@@ -1,0 +1,6 @@
+/__pycache__/
+*/__pycache__/
+/evaluation_results/
+/models/
+/*data/
+*.dat

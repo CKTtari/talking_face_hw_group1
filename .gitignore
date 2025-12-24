@@ -6,17 +6,17 @@ __pycache__/
 build/
 dist/
 *.egg-info/
-api_key.py
+Mimictalk_Talking_System/api_key.py
 
-SyncTalk/SyncTalk/
+Mimictalk_Talking_System/SyncTalk/SyncTalk/
 
 GPT-SoVITS/
 
 test_data/
-backend/data/
-backend/temp/
-uploads/
-static/videos
-backend/local_ckpts
-backend/voice_manual_error.log
-backend/voice_manual.log
+Mimictalk_Talking_System/backend/data/
+Mimictalk_Talking_System/backend/temp/
+Mimictalk_Talking_System/uploads/
+Mimictalk_Talking_System/static/videos
+Mimictalk_Talking_System/backend/local_ckpts
+Mimictalk_Talking_System/backend/voice_manual_error.log
+Mimictalk_Talking_System/backend/voice_manual.log

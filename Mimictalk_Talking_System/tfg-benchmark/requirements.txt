@@ -1,0 +1,45 @@
+# Talking Face Generation 评测系统依赖
+# 版本号尽量使用>=以确保兼容性
+--extra-index-url https://download.pytorch.org/whl/cu121
+# 核心深度学习框架
+torch==2.1.0
+torchvision==0.16.0
+
+# 图像和视频处理
+opencv-python>=4.5.0
+Pillow>=8.0.0
+scikit-image>=0.19.0
+imageio>=2.9.0
+
+# 数值计算和科学计算
+numpy==1.26.4
+scipy>=1.6.0
+
+# 图像质量评估 (主要指标依赖)
+pyiqa>=0.1.0  # 用于FID, LPIPS, SSIM, PSNR, NIQE等指标
+
+# 人脸识别 (身份相似度指标)
+facenet-pytorch>=2.5.0
+
+# 音频处理
+librosa>=0.9.0
+moviepy>=1.0.0
+soundfile>=0.10.0
+
+# 文件处理和数据分析
+pandas>=1.3.0
+tqdm>=4.60.0
+
+# 其他工具
+argparse  # Python标准库，无需安装
+glob2>=0.7  # 扩展的glob功能
+python-dotenv>=0.19.0  # 环境变量管理
+
+# 可视化 (可选)
+matplotlib>=3.3.0
+seaborn>=0.11.0
+
+# 同步评测额外依赖 (LSE-C, LSE-D)
+# SyncNet相关依赖已包含在代码中，无需额外安装
+# 但需要确保有以下运行时依赖：
+python-speech-features>=0.6  # MFCC特征提取

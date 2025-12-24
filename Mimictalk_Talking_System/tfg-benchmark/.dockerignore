@@ -1,0 +1,45 @@
+# 排除版本控制
+.git/
+.gitignore
+
+# 排除 Python 相关
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+.conda/
+*.egg-info/
+.pytest_cache/
+
+# 排除 IDE 文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 排除日志和临时文件
+*.log
+*.tmp
+*.temp
+
+# 排除数据文件（根据需要）
+eval_data/
+data/
+*.csv
+*.json
+*.db
+
+# 排除大文件
+*.zip
+*.tar.gz
+
+# 排除配置文件和文档
+config.local.yaml
+*.md
+LICENSE
+Dockerfile*
+docker-compose*
