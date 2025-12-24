@@ -1,6 +1,6 @@
 # Python
 __pycache__/
-.vscode/
+.vscode
 *.py[cod]
 *.so
 .Python
