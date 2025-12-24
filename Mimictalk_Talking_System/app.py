@@ -413,7 +413,7 @@ def api_generate():
                 files = {'audio_file': audio_file}
                 data = {
                     'local_ckpt_dir': model_dir,
-                    'out_name': f"infer_{uuid.uuid4().hex[:8]}.mp4",
+                    'out_name': f"infer_{uuid.uuid4().hex[:8]}",  # 不包含.mp4扩展名，main.py会自动添加
                     'drv_pose': temp_video_path,  # 使用上传的视频作为参考姿势
                     'bg_img': '',
                     'target_text': target_text  # 传递目标文字参数

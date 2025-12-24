@@ -51,10 +51,10 @@ class VideoAudioProcessor:
             else:
                 # 使用moviepy调整视频速度
                 with VideoFileClip(input_file) as video:
-                    # 调整视频速度
+                    # 调整视频速度，同时调整音频速度
                     video = video.fx(vfx.speedx, float(speed_factor))
-                    # 保存调整后的视频
-                    video.write_videofile(output_file, codec='libx264', audio=False, preset='fast')
+                    # 保存调整后的视频，包含音频
+                    video.write_videofile(output_file, codec='libx264', audio_codec='aac', preset='fast')
                 return True
         except Exception as e:
             print(f"调整视频速度失败: {str(e)}")
@@ -87,38 +87,37 @@ class VideoAudioProcessor:
             
             print(f"   创建临时目录: {temp_dir}")
             
-            # 分离音频
-            temp_audio = os.path.join(temp_dir, "temp_audio.wav")
-            print(f"   分离音频到: {temp_audio}")
-            
             # 确保输入文件存在
             if not os.path.exists(input_video_file):
                 print(f"❌ 输入视频文件不存在: {input_video_file}")
                 return False
             
-            try:
-                # 使用moviepy分离音频
-                with VideoFileClip(input_video_file) as video:
-                    audio = video.audio
-                    audio.write_audiofile(temp_audio, codec='pcm_s16le')
-                print(f"✅ 音频分离完成")
-            except Exception as e:
-                print(f"❌ 分离音频失败: {e}")
-                return False
-            
-            # 调整音频升降调
-            temp_audio_pitch = os.path.join(temp_dir, "temp_audio_pitch.mp3")
-            print(f"   调整音频升降调到: {temp_audio_pitch}")
-            if not self.adjust_audio_pitch(temp_audio, temp_audio_pitch, pitch_shift):
-                return False
-            print(f"✅ 音频升降调完成")
-            
-            # 调整视频速度
+            # 调整视频速度（同时调整音频速度）
             temp_video_speed = os.path.join(temp_dir, "temp_video_speed.mp4")
             print(f"   调整视频速度到: {temp_video_speed}")
             if not self.adjust_video_speed(input_video_file, temp_video_speed, speed_factor):
                 return False
             print(f"✅ 视频速度调整完成")
+            
+            # 分离调整速度后的视频的音频
+            temp_audio_speed = os.path.join(temp_dir, "temp_audio_speed.wav")
+            print(f"   分离调整速度后的音频到: {temp_audio_speed}")
+            try:
+                # 使用moviepy分离音频
+                with VideoFileClip(temp_video_speed) as video:
+                    audio = video.audio
+                    audio.write_audiofile(temp_audio_speed, codec='pcm_s16le')
+                print(f"✅ 调整速度后的音频分离完成")
+            except Exception as e:
+                print(f"❌ 分离调整速度后的音频失败: {e}")
+                return False
+            
+            # 调整音频升降调
+            temp_audio_pitch = os.path.join(temp_dir, "temp_audio_pitch.wav")
+            print(f"   调整音频升降调到: {temp_audio_pitch}")
+            if not self.adjust_audio_pitch(temp_audio_speed, temp_audio_pitch, pitch_shift):
+                return False
+            print(f"✅ 音频升降调完成")
             
             # 重新合并视频和音频
             print(f"   合并视频和音频到: {output_video_file}")

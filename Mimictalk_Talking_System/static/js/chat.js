@@ -260,7 +260,7 @@ function updateVoiceButtons() {
     }
 }
 
-// 更新生成状态的UI
+// 更新生成状态的UI（修改：恢复状态时不清空视频容器）
 function updateGenerationUI(isGenerating) {
     const characterVideo = document.getElementById('characterVideo');
     const voiceToggleBtn = document.getElementById('voiceToggleBtn');
@@ -271,11 +271,11 @@ function updateGenerationUI(isGenerating) {
     if (isGenerating) {
         // 创建进度条
         characterVideo.innerHTML = `
-            <div class="generation-progress-container">
-                <div class="generation-progress-bar">
-                    <div class="generation-progress" style="width: 0%"></div>
+            <div class="generation-progress-container" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div class="generation-progress-bar" style="width: 80%; height: 10px; background: #eee; border-radius: 5px; overflow: hidden;">
+                    <div class="generation-progress" style="width: 0%; height: 100%; background: #2196f3;"></div>
                 </div>
-                <div class="generation-progress-text">视频生成中...</div>
+                <div class="generation-progress-text" style="margin-top: 10px; color: #666;">视频生成中...请耐心等待</div>
             </div>
         `;
         
@@ -300,9 +300,10 @@ function updateGenerationUI(isGenerating) {
         // 停止模拟进度增长
         stopSimulateProgress();
         
-        // 只有在没有视频播放时才恢复原始视频容器内容
-        if (!characterVideoPlaying) {
-            characterVideo.innerHTML = '<p>克隆人物视频将显示在此（由后端生成）</p>';
+        // 关键修改：只有当没有视频播放时，才恢复占位文本
+        // 已有视频时，保留视频元素，不修改characterVideo内容
+        if (!characterVideoPlaying && !characterVideo.querySelector('video')) {
+            characterVideo.innerHTML = '<p style="text-align: center; padding: 50px; margin: 0; color: #666;">克隆人物视频将显示在此（由后端生成）</p>';
         }
         
         // 启用所有输入和按钮
@@ -355,7 +356,7 @@ function updateProgress(progress) {
     if (progressElement && progressText) {
         progress = Math.min(100, Math.max(0, progress));
         progressElement.style.width = progress + '%';
-        progressText.textContent = `视频生成中... ${Math.round(progress)}%`;
+        progressText.textContent = `视频生成中...请耐心等待... ${Math.round(progress)}%`;
     }
 }
 
@@ -508,39 +509,60 @@ function pollTaskStatus(taskId) {
     const checkStatus = () => {
         fetch(`/api/task/${taskId}`)
             .then(response => response.json())
-            .then(task => {
-                if (task.status === 'completed') {
-                    // 停止模拟进度增长
-                    stopSimulateProgress();
-                    
-                    // 设置进度为100%
-                    updateProgress(100);
-                    
-                    if (task.video_url) {
-                        // 提取视频文件名
-                        const videoFilename = task.video_url.split('/').pop();
-                        playGeneratedVideo(videoFilename);
+            .then(data => {
+                console.log('获取任务状态:', data);
+                if (!data.error) {
+                    const task = data;
+                    console.log('任务详情:', task);
+                    if (task.status === 'completed') {
+                        // 停止模拟进度增长
+                        stopSimulateProgress();
+                        
+                        // 设置进度为100%
+                        updateProgress(100);
+                        
+                        if (task.video_url) {
+                            // 直接使用完整的视频URL
+                            console.log('视频URL:', task.video_url);
+                            playGeneratedVideo(task.video_url);
+                        } else {
+                            console.error('任务完成但没有视频URL');
+                        }
+                        // 只更新状态变量，不立即恢复界面
+                        isGenerating = false;
+                        currentTaskId = null;
+                    } else if (task.status === 'failed') {
+                        // 停止模拟进度增长
+                        stopSimulateProgress();
+                        
+                        showNotification('视频生成失败', 'error');
+                        // 恢复界面状态
+                        updateGenerationUI(false);
+                        isGenerating = false;
+                        currentTaskId = null;
+                    } else {
+                        // 继续轮询
+                        setTimeout(checkStatus, 1000);
                     }
-                    // 只更新状态变量，不立即恢复界面
-                    isGenerating = false;
-                    currentTaskId = null;
-                } else if (task.status === 'failed') {
+                } else {
+                    console.error('获取任务状态失败:', data.error);
                     // 停止模拟进度增长
                     stopSimulateProgress();
                     
-                    showNotification('视频生成失败', 'error');
+                    showNotification(`获取任务状态失败: ${data.error}`, 'error');
                     // 恢复界面状态
                     updateGenerationUI(false);
                     isGenerating = false;
                     currentTaskId = null;
-                } else {
-                    // 继续轮询
-                    setTimeout(checkStatus, 1000);
                 }
             })
             .catch(error => {
                 console.error('获取任务状态失败:', error);
                 showNotification('获取任务状态失败: ' + error.message, 'error');
+                // 恢复界面状态
+                updateGenerationUI(false);
+                isGenerating = false;
+                currentTaskId = null;
             });
     };
     
@@ -548,58 +570,88 @@ function pollTaskStatus(taskId) {
     checkStatus();
 }
 
-// 播放生成的视频
-function playGeneratedVideo(videoFilename) {
+// 播放生成的视频（改成生成页面类似的简洁写法）
+function playGeneratedVideo(videoUrl) {
+    console.log('播放生成的视频，URL:', videoUrl);
     const characterVideo = document.getElementById('characterVideo');
     
-    // 创建新的视频元素
-    const video = document.createElement('video');
-    video.autoplay = true;
-    video.playsInline = true;
-    video.muted = true; // 添加静音属性确保自动播放
-    video.src = `/static/videos/${videoFilename}`;
+    // 1. 先给容器设置基础样式（确保容器可见，对应生成页面的容器默认样式）
+    characterVideo.style.width = '400px';
+    characterVideo.style.height = '300px';
+    characterVideo.style.border = '1px solid #ccc';
+    characterVideo.style.borderRadius = '10px';
+    characterVideo.style.margin = '10px 0';
+    characterVideo.style.overflow = 'hidden';
+    characterVideo.style.backgroundColor = '#f5f5f5';
     
-    // 监听视频加载事件
-    video.onloadeddata = function() {
-        console.log('视频加载完成');
-        showNotification('视频加载完成', 'success');
-    };
+    // 2. 采用生成页面的写法：直接拼接视频元素，添加controls属性，移除复杂样式
+    characterVideo.innerHTML = `
+        <video controls style="width: 100%; height: 100%; object-fit: contain;">
+            <source src="${videoUrl}" type="video/mp4">
+            你的浏览器不支持视频播放，请更换浏览器重试。
+        </video>
+    `;
     
-    // 监听视频播放事件，取消静音
-    video.onplay = function() {
-        setTimeout(() => {
-            video.muted = false;
-        }, 100);
-        console.log('视频开始播放');
-    };
-    
-    // 监听视频播放结束事件
-    video.onended = function() {
-        characterVideoPlaying = false;
-        console.log('视频播放结束');
-        // 恢复界面状态
-        updateGenerationUI(false);
-        isGenerating = false;
-        currentTaskId = null;
-    };
-    
-    // 监听视频错误事件
-    video.onerror = function(error) {
-        console.error('视频播放错误:', error);
-        showNotification('视频播放失败', 'error');
-        // 恢复界面状态
-        updateGenerationUI(false);
-        isGenerating = false;
-        currentTaskId = null;
-    };
-    
-    // 清空容器并添加新视频
-    characterVideo.innerHTML = '';
-    characterVideo.appendChild(video);
+    // 3. 获取创建后的视频元素（如需保留自动播放逻辑，可在这里添加）
+    const video = characterVideo.querySelector('video');
+    if (video) {
+        // 可选：保留自动播放（添加muted确保自动播放生效）
+        video.autoplay = true;
+        video.muted = false; // 如需静音可改为true
+        video.playsInline = true;
+        
+        // 视频加载完成事件
+        video.onloadeddata = function() {
+            console.log('视频加载完成，时长:', video.duration);
+            showNotification('视频加载完成', 'success');
+        };
+        
+        // 视频播放开始事件
+        video.onplay = function() {
+            console.log('视频开始播放');
+        };
+        
+        // 视频播放结束后，不自动清空容器（保留视频元素）
+        video.onended = function() {
+            characterVideoPlaying = false;
+            isGenerating = false;
+            currentTaskId = null;
+            console.log('视频播放结束，保留视频画面');
+            // 不再恢复占位文本，保留视频元素
+            // 只恢复输入控件状态，不修改视频容器
+            const voiceToggleBtn = document.getElementById('voiceToggleBtn');
+            const chatForm = document.getElementById('chatForm');
+            const generationButtons = chatForm.querySelectorAll('button');
+            const generationInputs = chatForm.querySelectorAll('input, select, textarea');
+            
+            // 启用所有输入和按钮
+            generationButtons.forEach(button => {
+                button.disabled = false;
+            });
+            
+            generationInputs.forEach(input => {
+                input.disabled = false;
+            });
+            
+            // 更新语音按钮为正常状态
+            updateVoiceButtons();
+        };
+        
+        // 视频错误处理
+        video.onerror = function(error) {
+            console.error('视频播放错误:', error);
+            characterVideo.innerHTML = '<div style="text-align: center; padding: 50px; color: #f44336;">视频加载失败，请检查视频文件</div>';
+            characterVideoPlaying = false;
+            isGenerating = false;
+            currentTaskId = null;
+            // 恢复界面状态
+            updateGenerationUI(false);
+        };
+    }
     
     characterVideoPlaying = true;
-    showNotification('视频播放开始', 'success');
-    console.log('视频URL:', video.src);
+    showNotification('视频已生成，可手动播放', 'success');
+    console.log('最终视频URL:', videoUrl);
 }
 
 
