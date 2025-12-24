@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音识别与合成系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+           <a href="/" class="nav-brand">语音识别与合成系统</a>
+            <ul class="nav-menu">
+                <li><a href="/train">模型训练</a></li>
+                <li><a href="/generate">视频生成</a></li>
+                <li><a href="/chat">实时对话</a></li>
+            </ul>
+            <div class="nav-actions">
+                <select id="themeSelect" onchange="UI.setTheme(this.value)">
+                    <option value="minimal-white" selected>极简白</option>
+                    <option value="elegant-gray">素雅灰</option>
+                    <option value="light-green">浅葱绿</option>
+                    <option value="summer-yellow">盛夏黄</option>
+                    <option value="peach-pink">桃桃粉</option>
+                    <option value="star-purple">星辰紫</option>
+                    <option value="classic-blue">经典蓝</option>
+                    <option value="vital-red">元气红</option>
+                    <option value="ultimate-black">极致黑</option>
+                </select>
+                <select id="fontSelect" onchange="UI.setFont(this.value)">
+                    <option value="default">默认字体</option>
+                    <option value="serif">衬线字体 (Serif)</option>
+                    <option value="sans-serif">无衬线字体 (Sans-Serif)</option>
+                    <option value="monospace">等宽字体 (Monospace)</option>
+                    <option value="cursive">手写字体 (Cursive)</option>
+                </select>
+                <button class="btn-small" onclick="UI.startTour()">新手引导</button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="header">
+            <h1>AI语音交互系统</h1>
+            <p>探索先进的语音识别与合成技术，创建个性化的AI语音助手</p>
+        </div>
+        
+        <div class="options-container">
+            <div class="option-card" onclick="window.location.href='/train'">
+                <div class="icon">🎓</div>
+                <h2>模型训练</h2>
+                <p>训练语音合成模型</p>
+            </div>
+            
+            <div class="option-card" onclick="window.location.href='/generate'">
+                <div class="icon">🎬</div>
+                <h2>视频生成</h2>
+                <p>生成同步音视频</p>
+            </div>
+            
+            <div class="option-card" onclick="window.location.href='/chat'">
+                <div class="icon">💬</div>
+                <h2>实时对话</h2>
+                <p>与克隆人物实时交互</p>
+            </div>
+                        
+            <div class="option-card workflow-experience" onclick="window.location.href='/workflow'">
+                <div class="icon">🚀</div>
+                <h2>一条龙体验</h2>
+                <p>从训练到对话的全流程引导</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+</body>
+</html>

@@ -3,6 +3,7 @@
 
 ## 使用指南
 - 请先使用pip install -r requirements.txt 安装依赖
+- 请先配置好DeepSeek API Key，参考目录下的示例填写好API，修改名字为api_key.py。或者可以自行修改代码使用其他API
 - 确保前端端口（默认5000）和后端端口（默认8083）可用
 - 新建两个独立终端，一个cd backend后执行python main.py启动后端，另一个在当前目录执行python app.py启动前端
 - 进入弹出的前端地址（默认http://localhost:5000）即可开始使用啦！

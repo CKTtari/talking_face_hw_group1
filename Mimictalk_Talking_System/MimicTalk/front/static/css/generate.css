@@ -1,0 +1,34 @@
+/* 视频生成页面特定样式 */
+@import url('common.css');
+
+.generate-status {
+    background: #f0f0f0;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-top: 1rem;
+    display: none;
+}
+
+.generate-status.active {
+    display: block;
+}
+
+.generate-status p {
+    color: #555;
+    margin: 0.5rem 0;
+}
+
+.generate-status .status-success {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+.generate-status .status-error {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.generate-status .status-processing {
+    color: #2196f3;
+    font-weight: bold;
+}

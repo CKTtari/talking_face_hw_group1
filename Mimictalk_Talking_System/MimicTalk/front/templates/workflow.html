@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一条龙体验 - 语音识别与合成系统</title>
+  
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/workflow.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">语音识别与合成系统</a>
+            <ul class="nav-menu">
+                <li><a href="/train">模型训练</a></li>
+                <li><a href="/generate">视频生成</a></li>
+                <li><a href="/chat">实时对话</a></li>
+                <li><a href="/workflow" class="active">一条龙体验</a></li>
+            </ul>
+            <div class="nav-actions">
+                <select id="themeSelect" onchange="UI.setTheme(this.value)">
+                    <option value="minimal-white" selected>极简白</option>
+                    <option value="elegant-gray">素雅灰</option>
+                    <option value="light-green">浅葱绿</option>
+                    <option value="summer-yellow">盛夏黄</option>
+                    <option value="peach-pink">桃桃粉</option>
+                    <option value="star-purple">星辰紫</option>
+                    <option value="classic-blue">经典蓝</option>
+                    <option value="vital-red">元气红</option>
+                    <option value="ultimate-black">极致黑</option>
+                </select>
+                <select id="fontSelect" onchange="UI.setFont(this.value)">
+                    <option value="default">默认字体</option>
+                    <option value="serif">衬线字体 (Serif)</option>
+                    <option value="sans-serif">无衬线字体 (Sans-Serif)</option>
+                    <option value="monospace">等宽字体 (Monospace)</option>
+                    <option value="cursive">手写字体 (Cursive)</option>
+                </select>
+                <button class="btn-small" onclick="UI.startTour()">新手引导</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="content-container workflow-container">
+        <!-- 流程进度条 -->
+        <div class="workflow-progress">
+            <div class="progress-steps">
+                <div class="progress-step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">基础配置</div>
+                </div>
+                <div class="progress-line active"></div>
+                <div class="progress-step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">模型训练</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">视频生成</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-label">对话配置</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="5">
+                    <div class="step-number">5</div>
+                    <div class="step-label">实时对话</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 左侧：步骤说明和提示 -->
+        <div class="left-panel workflow-info">
+            <div class="step-instructions">
+                <h2>步骤 <span id="currentStepNumber">1</span>: <span id="currentStepTitle">基础配置</span></h2>
+                <div id="stepDescription">
+                    <p>欢迎使用一条龙体验流程！在这一步，您需要选择核心模型、GPU配置和上传参考视频。</p>
+                    <p class="tip">参考视频需包含清晰的人脸，时长建议5-30秒。</p>
+                </div>
+            </div>
+            
+            <!-- 进度和状态显示 -->
+            <div id="taskProgress" class="task-progress" style="display: none;">
+                <h3>任务进度</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                    <p id="progressText">0%</p>
+                </div>
+                <p id="estimatedTime">预计剩余时间：--</p>
+            </div>
+            
+            <!-- 预览区域 -->
+            <div id="previewArea" class="preview-area">
+                <h3>预览</h3>
+                <div id="previewContent" class="preview-content">
+                    <p>选择或上传文件后将显示预览</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：参数配置表单 -->
+        <div class="right-panel workflow-forms">
+            <!-- 步骤1：基础配置 -->
+            <div id="step1" class="workflow-step active">
+                <h2>基础配置</h2>
+                <form id="basicConfigForm" class="form-container">
+                    <!-- 核心模型选择 -->
+                    <div class="form-group">
+                        <label for="coreModel">核心模型</label>
+                        <select id="coreModel" name="coreModel">
+                            <option value="SyncTalk" selected>SyncTalk</option>
+                            <option value="Wav2Lip">Wav2Lip</option>
+                            <option value="MoFA-Talk">MoFA-Talk</option>
+                        </select>
+                        <small class="field-tip">选择要使用的核心模型</small>
+                    </div>
+
+                    <!-- GPU选择 -->
+                    <div class="form-group">
+                        <label for="gpuSelect">GPU选择</label>
+                        <select id="gpuSelect" name="gpuSelect">
+                            <option value="GPU0" selected>GPU0</option>
+                            <option value="GPU1">GPU1</option>
+                            <option value="GPU2">GPU2</option>
+                            <option value="GPU3">GPU3</option>
+                        </select>
+                        <small class="field-tip">系统将自动检测可用GPU</small>
+                    </div>
+
+                    <!-- 参考视频上传 -->
+                    <div class="form-group">
+                        <label for="referenceVideo">参考视频</label>
+                        <input type="text" id="referenceVideo" name="referenceVideo" placeholder="输入视频路径">
+                        <button type="button" class="btn-upload" onclick="uploadFile('video')">上传视频</button>
+                        <small class="field-tip">支持mp4/mov/webm格式，文件大小≤200MB</small>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 步骤2：模型训练 -->
+            <div id="step2" class="workflow-step">
+                <h2>模型训练</h2>
+                <form id="trainConfigForm" class="form-container">
+                    <!-- 训练轮数 -->
+                    <div class="form-group">
+                        <label for="trainingEpochs">训练轮数</label>
+                        <input type="number" id="trainingEpochs" name="trainingEpochs" value="50" min="1" max="200">
+                        <small class="field-tip">轮数越多效果越好，但耗时更长</small>
+                    </div>
+
+                    <!-- 自定义训练参数（折叠） -->
+                    <div class="form-group">
+                        <label class="toggle-label" onclick="toggleCustomParams()">
+                            <span>自定义训练参数</span>
+                            <span id="toggleIcon">▼</span>
+                        </label>
+                        <div id="customParamsSection" class="custom-params" style="display: none;">
+                            <textarea id="customTrainingParams" name="customTrainingParams" placeholder="输入JSON格式的自定义参数" rows="4"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 步骤3：视频生成 -->
+            <div id="step3" class="workflow-step">
+                <h2>视频生成</h2>
+                <form id="generateConfigForm" class="form-container">
+                    <!-- 参考音频上传 -->
+                    <div class="form-group">
+                        <label for="referenceAudio">参考音频</label>
+                        <input type="text" id="referenceAudio" name="referenceAudio" placeholder="输入音频路径">
+                        <button type="button" class="btn-upload" onclick="uploadFile('audio')">上传音频</button>
+                        <small class="field-tip">需上传清晰的人声音频，时长与参考视频匹配</small>
+                    </div>
+
+                    <!-- 语音克隆模型 -->
+                    <div class="form-group">
+                        <label for="voiceCloneModel">语音克隆模型</label>
+                        <select id="voiceCloneModel" name="voiceCloneModel">
+                            <option value="Voice Clone A" selected>Voice Clone A</option>
+                            <option value="Voice Clone B">Voice Clone B</option>
+                            <option value="Voice Clone C">Voice Clone C</option>
+                        </select>
+                        <small class="field-tip">选择适合的语音克隆模型</small>
+                    </div>
+
+                    <!-- 音频升降调 -->
+                    <div class="form-group">
+                        <label for="pitchControl">音频升降调 (半音)</label>
+                        <input type="range" id="pitchControl" name="pitchControl" min="-12" max="12" value="0">
+                        <div class="range-value">当前: <span id="pitchValue">0</span> 半音</div>
+                        <small class="field-tip">正值升调，负值降调</small>
+                    </div>
+
+                    <!-- 目标文字 -->
+                    <div class="form-group">
+                        <label for="targetText">目标文字</label>
+                        <textarea id="targetText" name="targetText" placeholder="输入要生成的文字内容（音频为空时必填）" rows="4"></textarea>
+                    </div>
+
+                    <!-- 抠图换背景 -->
+                    <div class="form-group">
+                        <label><input type="checkbox" id="tfgRemoveBg"> 启用抠图换背景 (TFG)</label>
+                        <small class="field-tip">勾选后会尝试对参考视频进行背景替换</small>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 步骤4：对话配置 -->
+            <div id="step4" class="workflow-step">
+                <h2>对话配置</h2>
+                <form id="chatConfigForm" class="form-container">
+                    <!-- 对话API选择 -->
+                    <div class="form-group">
+                        <label for="chatApi">对话API</label>
+                        <select id="chatApi" name="chatApi">
+                            <option value="Local LLM" selected>Local LLM</option>
+                            <option value="OpenAI API">OpenAI API</option>
+                            <option value="Claude API">Claude API</option>
+                        </select>
+                        <small class="field-tip">Local LLM无需配置API密钥</small>
+                    </div>
+
+                    <!-- API密钥配置（根据选择显示） -->
+                    <div id="apiKeySection" class="form-group" style="display: none;">
+                        <label for="apiKey">API密钥</label>
+                        <input type="password" id="apiKey" name="apiKey" placeholder="输入API密钥">
+                        <small class="field-tip">请确保密钥格式正确</small>
+                    </div>
+
+                    <!-- 对话参数（折叠） -->
+                    <div class="form-group">
+                        <label class="toggle-label" onclick="toggleChatParams()">
+                            <span>高级对话参数</span>
+                            <span id="chatToggleIcon">▼</span>
+                        </label>
+                        <div id="chatParamsSection" class="custom-params" style="display: none;">
+                            <!-- 对话温度 -->
+                            <div class="sub-form-group">
+                                <label for="temperature">对话温度</label>
+                                <input type="range" id="temperature" name="temperature" min="0" max="2" step="0.1" value="0.7">
+                                <div class="range-value">当前: <span id="temperatureValue">0.7</span></div>
+                            </div>
+                            
+                            <!-- 最大回复长度 -->
+                            <div class="sub-form-group">
+                                <label for="maxResponseLength">最大回复长度</label>
+                                <input type="number" id="maxResponseLength" name="maxResponseLength" value="500" min="50" max="2000">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 步骤5：实时对话 -->
+            <div id="step5" class="workflow-step">
+                <h2>实时对话</h2>
+                <div class="chat-interface">
+                    <!-- 左侧：视频显示 -->
+                    <div class="chat-video">
+                        <div id="characterVideo" class="character-video">
+                            <p>克隆人物视频将显示在此</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 右侧：对话输入 -->
+                    <div class="chat-input-area">
+                        <div id="chatMessages" class="chat-messages">
+                            <!-- 对话消息将动态添加 -->
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="userMessage" placeholder="输入你的消息..." onkeypress="handleKeyPress(event)">
+                            <button type="button" class="btn-send" onclick="sendMessage()">发送</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部操作按钮 -->
+    <div class="workflow-actions">
+        <button id="prevBtn" class="btn-action prev-btn" onclick="goToPreviousStep()" disabled>上一步</button>
+        <div class="action-buttons">
+            <button id="skipBtn" class="btn-action skip-btn" onclick="skipCurrentStep()">跳过</button>
+            <button id="nextBtn" class="btn-action next-btn" onclick="goToNextStep()">下一步</button>
+        </div>
+        <button id="finishBtn" class="btn-action finish-btn" onclick="finishWorkflow()" style="display: none;">完成</button>
+    </div>
+
+    <!-- 引导蒙层 -->
+    <div id="guideOverlay" class="guide-overlay" style="display: none;">
+        <div id="guideContent" class="guide-content">
+            <div class="guide-text">
+                <h3 id="guideTitle">欢迎使用新手引导</h3>
+                <p id="guideDescription">这是一个引导您完成全流程的助手</p>
+            </div>
+            <div class="guide-actions">
+                <button id="guidePrev" class="btn-small" onclick="previousGuide()">上一步</button>
+                <button id="guideNext" class="btn-small" onclick="nextGuide()">下一步</button>
+                <button id="guideClose" class="btn-small" onclick="closeGuide()">关闭引导</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/workflow.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>

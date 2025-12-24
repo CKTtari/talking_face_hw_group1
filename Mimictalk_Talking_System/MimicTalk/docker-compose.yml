@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  mimictalk:
+    build: .
+    container_name: mimictalk
+    volumes:
+      - ./checkpoints:/app/checkpoints
+      - ./checkpoints_mimictalk:/app/checkpoints_mimictalk
+      - ./data:/app/data
+      - ./infer_outs:/app/infer_outs
+    shm_size: '8gb'
+
+    # 这是唯一必须启用的 GPU 配置
+    # 且在 Docker Desktop / WSL2 下完全有效
+    deploy: {}
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PYTHONPATH=/app
+
+    ports:
+      - "7860:7860"
+    stdin_open: true
+    tty: true

@@ -448,7 +448,7 @@ function generateResponseAudioVideo(botResponse) {
     
     // 获取模型目录和GPU选择
     const modelDir = document.getElementById('modelDir').value;
-    const modelName = 'SyncTalk'; // 使用固定模型名，与generate.js一致
+    const modelName = 'MimicTalk'; // 使用固定模型名，与generate.js一致
     const gpuSelect = document.getElementById('gpuSelect').value;
     const pitch = document.getElementById('pitchControl').value;
     const speed = document.getElementById('speedControl').value;

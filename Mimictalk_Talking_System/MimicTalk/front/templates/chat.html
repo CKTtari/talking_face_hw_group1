@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时对话 - 语音识别与合成系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">语音识别与合成系统</a>
+            <ul class="nav-menu">
+                <li><a href="/train">模型训练</a></li>
+                <li><a href="/generate">视频生成</a></li>
+                <li><a href="/chat" class="active">实时对话</a></li>
+            </ul>
+            <div class="nav-actions">
+                <select id="themeSelect" onchange="UI.setTheme(this.value)">
+                    <option value="minimal-white" selected>极简白</option>
+                    <option value="elegant-gray">素雅灰</option>
+                    <option value="light-green">浅葱绿</option>
+                    <option value="summer-yellow">盛夏黄</option>
+                    <option value="peach-pink">桃桃粉</option>
+                    <option value="star-purple">星辰紫</option>
+                    <option value="classic-blue">经典蓝</option>
+                    <option value="vital-red">元气红</option>
+                    <option value="ultimate-black">极致黑</option>
+                </select>
+                      <select id="fontSelect" onchange="UI.setFont(this.value)">
+                    <option value="default">默认字体</option>
+                    <option value="serif">衬线字体 (Serif)</option>
+                    <option value="sans-serif">无衬线字体 (Sans-Serif)</option>
+                    <option value="monospace">等宽字体 (Monospace)</option>
+                    <option value="cursive">手写字体 (Cursive)</option>
+                </select>
+                <button class="btn-small" onclick="UI.startTour()">新手引导</button>
+            </div>
+        </div>
+    </nav>
+<div class="content-container">
+    <div class="left-panel">
+        <div class="chat-container">
+            <!-- 克隆人物视频 -->
+            <div class="video-container">
+                <h2>语音克隆人物视频</h2>
+                <div id="characterVideo" class="video-display">
+                    <p>克隆人物视频将显示在此（由后端生成）</p>
+                </div>
+            </div>
+
+            <!-- 用户视频 -->
+            <div class="video-container">
+                <h2>您的摄像头视频</h2>
+                <div id="userVideo" class="video-display">
+                    <p>您的视频将显示在此</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 右侧：对话配置区 -->
+    <div class="right-panel">
+            <h2>对话配置</h2>
+            <form id="chatForm" class="form-container">
+                <!-- 模型名称 -->
+                <div class="form-group">
+                    <label for="modelName">模型名称</label>
+                    <select id="modelName" name="modelName">
+                        <option value="SyncTalk" selected>SyncTalk</option>
+                        <option value="Wav2Lip">Wav2Lip</option>
+                        <option value="MoFA-Talk">MoFA-Talk</option>
+                    </select>
+                </div>
+
+                <!-- 模型目录地址 -->
+                <div class="form-group">
+                    <label for="modelDir">模型目录地址</label>
+                    <input type="text" id="modelDir" name="modelDir" 
+                           placeholder="输入模型目录路径">
+                    <button type="button" class="btn-upload" onclick="selectDirectory()">浏览</button>
+                </div>
+
+                <!-- 参考音频地址 -->
+                <div class="form-group">
+                    <label for="referenceAudio">参考音频地址</label>
+                    <input type="text" id="referenceAudio" name="referenceAudio" 
+                           placeholder="输入或上传参考音频路径">
+                    <button type="button" class="btn-upload" onclick="uploadFile('audio')">上传音频</button>
+                </div>
+
+                <!-- GPU选择 -->
+                <div class="form-group">
+                    <label for="gpuSelect">GPU选择</label>
+                    <select id="gpuSelect" name="gpuSelect">
+                        <option value="GPU0" selected>GPU0</option>
+                        <option value="GPU1">GPU1</option>
+                        <option value="GPU2">GPU2</option>
+                        <option value="GPU3">GPU3</option>
+                    </select>
+                </div>
+
+                <!-- 语音克隆模型名称 -->
+                <div class="form-group">
+                    <label for="voiceCloneModel">语音克隆模型名称</label>
+                    <select id="voiceCloneModel" name="voiceCloneModel">
+                        <option value="Voice Clone A" selected>Voice Clone A</option>
+                        <option value="Voice Clone B">Voice Clone B</option>
+                        <option value="Voice Clone C">Voice Clone C</option>
+                    </select>
+                </div>
+
+                <!-- 对话API选择 -->
+                <div class="form-group">
+                    <label for="apiSelect">对话API选择</label>
+                    <select id="apiSelect" name="apiSelect">
+                        <option value="OpenAI API" selected>OpenAI API</option>
+                        <option value="Claude API">Claude API</option>
+                        <option value="Local LLM">Local LLM</option>
+                    </select>
+                </div>
+
+                <!-- 音频升降调 -->
+                <div class="form-group">
+                    <label for="pitchControl">音频升降调 (半音)</label>
+                    <input type="range" id="pitchControl" name="pitchControl" min="-12" max="12" value="0">
+                    <div class="range-value">当前: <span id="pitchValue">0</span> 半音</div>
+                </div>
+
+                <!-- 抠图选项 -->
+                <div class="form-group">
+                    <label><input type="checkbox" id="tfgRemoveBgChat"> 启用抠图换背景 (TFG)</label>
+                </div>
+
+
+                <!-- 开始/停止对话切换按钮 -->
+                <button type="button" id="chatToggleBtn" class="btn-primary" onclick="toggleChat()">开始对话</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/webrtc.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+</body>
+</html>

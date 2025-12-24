@@ -205,7 +205,7 @@ const UI = (function(){
         {sel: '.left-panel .video-container', text: '左侧面板显示训练视频或结果。训练完成后，这里会展示生成的视频预览。'},
         {sel: '.right-panel .form-container', text: '右侧面板用于设置训练参数，包括模型选择、视频上传等。填写后点击开始训练。'},
         {sel: '.btn-train', text: '点击这个按钮启动模型训练。训练需要时间，进度条会显示进度。注意选择合适的GPU和Epoch以避免过长等待。'},
-        {sel: '#modelName', text: '这里选择模型，如SyncTalk，用于唇音同步训练。'},
+        {sel: '#modelName', text: '这里选择模型，如MimicTalk，用于唇音同步训练。'},
         {sel: '#referenceVideo', text: '上传或输入参考视频，这是训练的核心数据。确保视频清晰。'},
         {sel: '#gpuSelect', text: '选择GPU加速训练。如果有多个GPU可用，选择空闲的。'},
         {sel: '#epochs', text: '设置训练轮数。初次测试用小值如10，避免资源浪费。'}

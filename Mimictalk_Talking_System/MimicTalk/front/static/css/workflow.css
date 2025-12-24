@@ -1,0 +1,619 @@
+/* 导航栏样式 */
+.navbar {
+    background: var(--primary-blue);
+    padding: 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-brand {
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-decoration: none;
+    transition: opacity 0.3s;
+}
+
+.nav-brand:hover {
+    opacity: 0.8;
+}
+
+.nav-menu {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-menu a {
+    color: var(--text-color);
+    opacity: 0.8;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.3s;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+}
+
+.nav-menu a:hover,
+.nav-menu a.active {
+    color: var(--text-color);
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-actions {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.nav-actions select {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--muted);
+    background: var(--card-bg);
+}
+
+/* 一条龙体验页面样式 */
+
+.workflow-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: var(--bg-gradient);
+}
+
+/* 流程进度条 */
+.workflow-progress {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.progress-steps {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 800px;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.step-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--muted);
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.step-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-align: center;
+}
+
+.progress-step.active .step-number {
+    background: var(--primary-blue);
+    color: white;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+}
+
+.progress-step.active .step-label {
+    color: var(--text-color, #111);
+    font-weight: 500;
+}
+
+.progress-line {
+    flex: 1;
+    height: 2px;
+    background-color: var(--muted);
+    transition: all 0.3s ease;
+}
+
+.progress-line.active {
+    background: var(--primary-blue);
+}
+
+/* 内容区域 */
+.content-container {
+    display: flex;
+    gap: 2rem;
+    min-height: calc(100vh - 180px);
+}
+
+.left-panel.workflow-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.right-panel.workflow-forms {
+    flex: 1;
+    min-width: 400px;
+}
+
+/* 步骤说明 */
+.step-instructions {
+    background: var(--card-bg, white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 6px 20px rgba(16, 24, 40, 0.08);
+}
+
+.step-instructions h2 {
+    margin-bottom: 1rem;
+    color: var(--text-color, #111);
+}
+
+.step-instructions p {
+    color: var(--muted, #6b7280);
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+}
+
+.step-instructions .tip {
+    background-color: rgba(255, 255, 255, 0.5);
+    color: var(--text-color, #856404);
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    font-style: italic;
+    border-left: 4px solid var(--accent-1);
+}
+
+.step-instructions .step-tip {
+    background-color: rgba(255, 255, 255, 0.5);
+    color: var(--text-color, #856404);
+    font-size: 0.8rem;
+    font-style: italic;
+    margin-top: 0.5rem;
+    display: block;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border-left: 4px solid var(--accent-1);
+}
+
+/* 任务进度 */
+.task-progress {
+    background: var(--card-bg, white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 6px 20px rgba(16, 24, 40, 0.08);
+}
+
+.task-progress h3 {
+    margin-bottom: 1rem;
+    color: var(--text-color, #111);
+}
+
+.progress-bar {
+    position: relative;
+    height: 20px;
+    background-color: var(--muted);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary-blue);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 10px;
+}
+
+.progress-bar p {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-color, #111);
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+#estimatedTime {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+/* 预览区域 */
+.preview-area {
+    background: var(--card-bg, white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 6px 20px rgba(16, 24, 40, 0.08);
+}
+
+.preview-area h3 {
+    margin-bottom: 1rem;
+    color: var(--text-color, #111);
+}
+
+.preview-content {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-color);
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(16, 24, 40, 0.08);
+}
+
+.preview-content video {
+    max-width: 100%;
+    border-radius: 8px;
+}
+
+/* 表单样式 */
+.workflow-step {
+    display: none;
+    background: var(--card-bg, white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 6px 20px rgba(16, 24, 40, 0.08);
+}
+
+.workflow-step.active {
+    display: block;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: var(--text-color, #111);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.75rem;
+    border: 1px solid var(--muted);
+    border-radius: 8px;
+    font-size: 1rem;
+    color: var(--text-color);
+    background-color: var(--card-bg);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+/* 切换标签 */
+.toggle-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    font-weight: 500;
+    color: var(--text-color, #111);
+}
+
+.toggle-label:hover {
+    color: var(--primary-blue);
+}
+
+.custom-params {
+    margin-top: 0.5rem;
+    padding: 1rem;
+    background-color: var(--muted);
+    border-radius: 8px;
+}
+
+/* 子表单组 */
+.sub-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* 范围输入 */
+input[type="range"] {
+    width: 100%;
+}
+
+.range-value {
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+/* 按钮样式 */
+.btn-upload {
+    padding: 0.75rem 1.5rem;
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+}
+
+.btn-upload:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* 操作按钮区域 */
+.workflow-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem;
+    background: var(--card-bg, white);
+    border-radius: 12px;
+    box-shadow: 0 -6px 20px rgba(16, 24, 40, 0.08);
+    margin-top: auto;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-action {
+    padding: 0.875rem 1.75rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.prev-btn {
+    background-color: var(--muted);
+    color: var(--text-color);
+}
+
+.prev-btn:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.prev-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.next-btn {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.next-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.skip-btn {
+    background-color: transparent;
+    color: var(--primary-blue);
+    border: 1px solid var(--primary-blue);
+}
+
+.skip-btn:hover {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.finish-btn {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.finish-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* 对话界面 */
+.chat-interface {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    height: 500px;
+}
+
+.chat-video {
+    flex: 1;
+    background-color: var(--muted);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 250px;
+}
+
+.character-video {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+}
+
+.character-video video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.chat-input-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.chat-messages {
+    flex: 1;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-y: auto;
+    min-height: 150px;
+    color: var(--text-color);
+}
+
+.input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.input-group input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--muted);
+    border-radius: 8px;
+    font-size: 1rem;
+    color: var(--text-color);
+    background-color: var(--card-bg);
+}
+
+.btn-send {
+    padding: 0.75rem 1.5rem;
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.btn-send:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* 引导蒙层 */
+.guide-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.guide-content {
+    background: var(--card-bg, white);
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.guide-text h3 {
+    margin-bottom: 1rem;
+    color: var(--text-color, #111);
+}
+
+.guide-text p {
+    color: var(--muted, #6b7280);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.guide-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+    .content-container {
+        flex-direction: column;
+    }
+    
+    .left-panel.workflow-info,
+    .right-panel.workflow-forms {
+        min-width: auto;
+    }
+    
+    .workflow-progress {
+        overflow-x: auto;
+    }
+    
+    .progress-steps {
+        min-width: 800px;
+    }
+}
+
+@media (max-width: 768px) {
+    .workflow-container {
+        padding: 1rem;
+    }
+    
+    .workflow-actions {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .action-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+}
