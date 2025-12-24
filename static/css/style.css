@@ -166,14 +166,6 @@ body{font-family: var(--font-family,'Inter','Microsoft YaHei',Arial,sans-serif);
     max-width: 250px;
 }
 
-/* 一条龙体验卡片样式 */
-.option-card.workflow-experience{
-    background: var(--primary-blue);
-    color: white;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-    animation: workflow-pulse 2s infinite;
-}
-
 .option-card.workflow-experience h2{
     color: white;
 }

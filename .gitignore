@@ -6,6 +6,7 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+api_key.py
 
 SyncTalk/SyncTalk/
 
@@ -17,3 +18,5 @@ backend/temp/
 uploads/
 static/videos
 backend/local_ckpts
+backend/voice_manual_error.log
+backend/voice_manual.log

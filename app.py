@@ -10,6 +10,9 @@ import json
 import tempfile
 import uuid
 
+# 导入API key
+from api_key import OPENAI_API_KEY
+
 # 配置变量
 BACKEND_PORT = 8083  # 后端服务端口
 
@@ -114,8 +117,8 @@ from backend.chat_engine import generate_llm_response as chat_engine_generate_ll
 def generate_llm_response(user_message):
     """生成LLM响应 - 调用backend.chat_engine中的函数"""
     try:
-        # DeepSeek API配置
-        API_KEY = "sk-135d06ed4d374c8fbe9f6c1431174572"
+        # 使用从api_key.py导入的API key
+        API_KEY = OPENAI_API_KEY
         
         # 调用backend.chat_engine中的generate_llm_response函数
         return chat_engine_generate_llm_response(user_message, API_KEY)
@@ -316,6 +319,10 @@ def api_generate():
         temp_video_path = os.path.join(tempfile.gettempdir(), f"pose_{uuid.uuid4().hex}.mp4")
         video_file.save(temp_video_path)
         
+        # 检查是否需要调整音频音高
+        pitch_value = float(pitch) if pitch else 1.0
+        speed_value = float(speed) if speed else 1.0
+        
         # 如果提供了目标文本，先进行语音克隆
         final_audio_path = temp_audio_path
         
@@ -344,9 +351,24 @@ def api_generate():
                         cloned_audio_path = os.path.join(backend_data_dir, cloned_audio_filename)
                         
                         if os.path.exists(cloned_audio_path):
-                            final_audio_path = cloned_audio_path
-                            tasks[task_id]['reference_audio'] = f"cloned_{cloned_audio_filename}"
-                            print(f"✅ 使用语音克隆后的音频: {cloned_audio_filename}")
+                            if pitch_value != 1.0:
+                                # 直接对克隆后的音频进行音高调整
+                                from backend.video_audio_processor import VideoAudioProcessor
+                                processor = VideoAudioProcessor()
+                                adjusted_audio_path = os.path.join(backend_data_dir, f"pitch_adjusted_{cloned_audio_filename}")
+                                if processor.adjust_audio_pitch(cloned_audio_path, adjusted_audio_path, pitch_value):
+                                    final_audio_path = adjusted_audio_path
+                                    tasks[task_id]['reference_audio'] = f"pitch_adjusted_cloned_{cloned_audio_filename}"
+                                    print(f"✅ 使用语音克隆后并调整音高的音频: {os.path.basename(adjusted_audio_path)}")
+                                else:
+                                    # 如果音高调整失败，使用原始克隆音频
+                                    final_audio_path = cloned_audio_path
+                                    tasks[task_id]['reference_audio'] = f"cloned_{cloned_audio_filename}"
+                                    print(f"⚠️ 音频音高调整失败，使用原始克隆音频: {cloned_audio_filename}")
+                            else:
+                                final_audio_path = cloned_audio_path
+                                tasks[task_id]['reference_audio'] = f"cloned_{cloned_audio_filename}"
+                                print(f"✅ 使用语音克隆后的音频: {cloned_audio_filename}")
                         else:
                             print(f"⚠️ 克隆音频文件不存在: {cloned_audio_path}")
                 else:
@@ -354,6 +376,23 @@ def api_generate():
                     
             except Exception as e:
                 print(f"⚠️ 语音克隆过程出错: {str(e)}")
+        else:
+            # 没有目标文本，直接使用上传的参考音频
+            if pitch_value != 1.0:
+                # 直接对参考音频进行音高调整
+                from backend.video_audio_processor import VideoAudioProcessor
+                processor = VideoAudioProcessor()
+                adjusted_audio_path = os.path.join(os.path.dirname(temp_audio_path), f"pitch_adjusted_{os.path.basename(temp_audio_path)}")
+                if processor.adjust_audio_pitch(temp_audio_path, adjusted_audio_path, pitch_value):
+                    final_audio_path = adjusted_audio_path
+                    tasks[task_id]['reference_audio'] = f"pitch_adjusted_{os.path.basename(temp_audio_path)}"
+                    print(f"✅ 使用调整音高后的参考音频: {os.path.basename(adjusted_audio_path)}")
+                else:
+                    # 如果音高调整失败，使用原始参考音频
+                    final_audio_path = temp_audio_path
+                    print(f"⚠️ 音频音高调整失败，使用原始参考音频: {os.path.basename(temp_audio_path)}")
+            else:
+                print(f"✅ 使用原始参考音频: {os.path.basename(temp_audio_path)}")
         
         try:
             # 调用后端FastAPI推理API
@@ -385,26 +424,26 @@ def api_generate():
                 # 处理视频（应用音频升降调和视频加速减速）
                 processed_video_path = os.path.join(os.path.dirname(generated_video_path), f"processed_{os.path.basename(generated_video_path)}")
                 
-                # 执行处理 - 当pitch或speed不等于1时才执行后处理
-                pitch_value = float(pitch) if pitch else 1.0
+                # 执行处理 - 只进行视频速度调整，音频已经在克隆时处理过
                 speed_value = float(speed) if speed else 1.0
+                pitch_value = float(pitch) if pitch else 1.0
                 
                 print(f"🔍 后处理参数检查: pitch={pitch_value}, speed={speed_value}")
                 
-                if pitch_value != 1.0 or speed_value != 1.0:
-                    print(f"🔧 开始执行视频音频后处理")
+                if speed_value != 1.0:
+                    print(f"🔧 开始执行视频速度后处理")
                     print(f"   输入视频: {generated_video_path}")
                     print(f"   输出视频: {processed_video_path}")
-                    print(f"   处理参数: pitch={pitch_value}, speed={speed_value}")
+                    print(f"   处理参数: speed={speed_value}")
                     
-                    if not processor.adjust_video_audio(generated_video_path, processed_video_path, pitch, speed):
+                    if not processor.adjust_video_speed(generated_video_path, processed_video_path, speed_value):
                         # 如果处理失败，直接使用原始视频
                         processed_video_path = generated_video_path
-                        print(f"⚠️  视频音频处理失败，使用原始视频: {processed_video_path}")
+                        print(f"⚠️  视频速度处理失败，使用原始视频: {processed_video_path}")
                     else:
-                        print(f"✅  视频音频后处理完成: {processed_video_path}")
+                        print(f"✅  视频速度后处理完成: {processed_video_path}")
                 else:
-                    # 当pitch和speed都是1时，直接使用原始视频
+                    # 当speed为1时，直接使用原始视频
                     processed_video_path = generated_video_path
                     print(f"✅  无需处理，使用原始视频: {processed_video_path}")
                 
