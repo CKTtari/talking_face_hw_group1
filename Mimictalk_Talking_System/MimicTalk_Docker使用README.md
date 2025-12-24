@@ -84,3 +84,5 @@ pip install -r requirements.txt
 ```
 
 可以参考原项目https://github.com/RVC-Boss/GPT-SoVITS/blob/main/docs/cn/README.md中的环境配置。
+
+（注：这个云盘链接里还有一个可使用的训练好的模型）
