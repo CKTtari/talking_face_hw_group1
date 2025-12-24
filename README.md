@@ -4,10 +4,14 @@
 
 ## 要求项目
 MimicTalk: Mimicking a personalized and expressive 3D talking face in minutes
+
 https://github.com/yerfor/MimicTalk
 
 ## 部署指南
 请阅读 Mimictalk_Talking_System\MimicTalk_Docker使用README.md 部署模型docker
-请阅读 Mimictalk_Talking_System\MimicTalk_Docker使用README.md 部署系统应用。
+
+请阅读 Mimictalk_Talking_System\MimicTalk_Docker使用README.md 部署系统应用
+
 请阅读 Mimictalk_Talking_System\tfg-benchmark\README.md 部署评估系统
+
 评估项目原repo：https://github.com/2306nian/tfg-benchmark.git
