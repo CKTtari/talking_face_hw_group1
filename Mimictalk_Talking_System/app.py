@@ -169,7 +169,7 @@ def api_train():
         
         # 获取表单数据和文件
         video_file = request.files['reference_video']
-        model_name = request.form.get('model_name', 'SyncTalk')
+        model_name = request.form.get('model_name', 'MimicTalk')
         gpu = request.form.get('gpu', 'GPU0')
         custom_params = request.form.get('custom_params', '')
         
@@ -289,7 +289,7 @@ def api_generate():
         # 获取表单数据和文件
         audio_file = request.files['reference_audio']
         video_file = request.files['reference_video']
-        model_name = request.form.get('model_name', 'SyncTalk')
+        model_name = request.form.get('model_name', 'MimicTalk')
         model_dir = request.form.get('model_dir', '')
         gpu = request.form.get('gpu', 'GPU0')
         target_text = request.form.get('target_text', '')
@@ -521,7 +521,7 @@ def get_models():
         else:
             # 如果后端服务不可用，返回基本的真实可用模型
             return jsonify({
-                'models': ['SyncTalk'],
+                'models': ['MimicTalk'],
                 'voice_models': ['Voice Clone'],
                 'gpus': ['GPU0', 'CPU'],
                 'apis': ['Zhipu API']
@@ -530,7 +530,7 @@ def get_models():
         print(f"获取模型列表出错: {e}")
         # 出错时返回基本的真实可用模型
         return jsonify({
-            'models': ['SyncTalk'],
+            'models': ['MimicTalk'],
             'voice_models': ['Voice Clone'],
             'gpus': ['GPU0', 'CPU'],
             'apis': ['Zhipu API']

@@ -1,8 +1,10 @@
 # MimicTalk容器镜像使用指南
 ## 导入镜像为容器：
-docker load -i mimictalk_hw.tar
-在发的yml的路径下执行：docker compose up -d
-就应该有容器了，之后直接运行就可以。
+将mimictalk.tar放到Mimictalk_Talking_System/MimicTalk/目录下
+执行以下命令生成容器
+docker load -i mimictalk.tar
+docker compose up -d
+
 
 ## 运行问题
 - dockerfile里写的各种依赖并不靠谱，构建后还需要很多操作解决冲突。不过你们应该也不需要重新构建，现在的容器就是我把很多问题都解决完的版本。
