@@ -55,7 +55,9 @@ SHELL ["conda", "run", "-n", "mimictalk", "/bin/bash", "-c"]
 
 # 复制 requirements.txt
 COPY docs/prepare_env/requirements.txt .
-RUN conda run -n mimictalk pip install --no-cache-dir --upgrade pip setuptools wheel cython numpy 
+
+
+RUN conda run -n mimictalk pip install --no-cache-dir --upgrade pip setuptools wheel cython numpy==1.26.4
 # 1. 基础数据/科学计算包（变化少、依赖稳定）
 RUN conda run -n mimictalk pip install --no-cache-dir \
     numba==0.60.0 pandas scipy==1.11.1 scikit-learn scikit-image
@@ -105,8 +107,7 @@ RUN conda run -n mimictalk pip install --no-cache-dir pretrainedmodels textgrid 
 # 新增：安装iopath 和 huggingface_hub==0.19.3
 RUN conda run -n mimictalk pip install --no-cache-dir iopath huggingface_hub==0.19.3
 
-# 安装fastapi和gradio
-RUN conda run -n mimictalk pip install --no-cache-dir fastapi==0.112.2 gradio==4.43.0
+RUN conda run -n mimictalk pip install --no-cache-dir fastapi==0.112.2 gradio==3.50.2
 
 # 安装mmcv（通过mim，按要求去掉版本号显式指定）
 RUN conda run -n mimictalk pip install --no-cache-dir openmim==0.3.9 

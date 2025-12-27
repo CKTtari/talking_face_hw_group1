@@ -15,14 +15,20 @@
 docker load -i my-mimictalk:v1.0.tar
 docker compose up -d
 ```
-## 使用源代码从头构建（不推荐）
+## 使用源代码从头构建
 按照正常的docker构建流程，从dockerfile构建镜像。
 理论上没问题，但可能遇到网络问题或者进去以后可能有其他环境问题。可以联系组长解决。
+建议把“MimicTalk源代码”改成MimicTalk
+执行：
+```
+cd Mimictalk_Talking_System\MimicTalk源代码 
+docker compose up -d --build
+docker start mimictalk
+```
 
 ## 下载预训练与第三方模型
 ### 3DMM BFM模型
 下载3DMM BFM模型：[Google Drive](https://drive.google.com/drive/folders/1o4t5YIw7w4cMUN4bgU9nPf6IyWVG1bEk?usp=sharing) 或 [BaiduYun Disk](https://pan.baidu.com/s/1aqv1z_qZ23Vp2VP4uxxblQ?pwd=m9q5 ) 提取码: m9q5
-
 
 下载完成后，放置全部的文件到`deep_3drecon/BFM`里，文件结构如下：
 ```
@@ -66,7 +72,18 @@ conda activate mimictalk
 python inference/train_mimictalk_on_a_video.py # train the model, this may take 10 minutes for 2,000 steps
 python inference/mimictalk_infer.py # infer the model
 ```
-
+```
+# 示例带参数命令
+conda activate mimictalk
+python -m inference.mimictalk_infer --a2m_ckpt checkpoints/240112_icl_audio2secc_vox2_cmlr --torso_ckpt checkpoints_mimictalk/Lieu --drv_aud data/raw/examples/80_vs_60_10s.wav --drv_pose data/raw/videos/Lieu.mp4 --out_name LIEU.mp4
+python inference/train_mimictalk_on_a_video.py \
+  --video_id /data/raw/videos/Lieu.mp4 \
+  --work_dir checkpoints_mimictalk/Lieu \
+  --batch_size 1 \
+  --max_updates 20000 \
+  --lr 1e-4 \
+  --lr_triplane 1e-4
+```
 ## 语音克隆模型
 ### 如果是从镜像构建，无需进行任何操作。
 ###　如果从源代码构建：
@@ -85,4 +102,4 @@ pip install -r requirements.txt
 
 可以参考原项目https://github.com/RVC-Boss/GPT-SoVITS/blob/main/docs/cn/README.md中的环境配置。
 
-（注：这个云盘链接里还有一个可使用的训练好的模型）
+（注：这个云盘链接里还有一个可使用的训练好的TFG模型）
