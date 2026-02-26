@@ -1,7 +1,4 @@
 # 语音识别与合成 GROUP1 (基于Mimictalk论文)
-## 小组成员
-高天翊（组长），高思瑶，荆琪，肖晨阳，郑凯峰，赵舒妍，赵禹
-
 ## 要求项目
 MimicTalk: Mimicking a personalized and expressive 3D talking face in minutes
 
